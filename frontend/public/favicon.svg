@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background Circle (Optional, removed for cleaner look or kept subtle) -->
+  <!-- <circle cx="50" cy="50" r="48" fill="none" stroke="url(#grad)" stroke-width="2" /> -->
+  
+  <!-- Cool Lightning Bolt -->
+  <path d="M55 5 L25 50 L50 50 L40 95 L85 40 L60 40 Z" 
+        fill="url(#grad)" 
+        stroke="white" 
+        stroke-width="2" 
+        stroke-linejoin="round"
+        filter="url(#glow)"
+  />
+</svg>

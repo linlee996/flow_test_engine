@@ -1,0 +1,81 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.field label {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.field small {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.input,
+.select {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+.input:focus,
+.select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.uploadBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    border: 2px dashed var(--glass-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-secondary);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.uploadBox:hover {
+    border-color: var(--color-primary);
+    background: rgba(139, 92, 246, 0.05);
+    color: var(--color-primary);
+}
+
+.error {
+    padding: 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}

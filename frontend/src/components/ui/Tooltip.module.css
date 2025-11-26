@@ -1,0 +1,32 @@
+.container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 0.75rem;
+    background: rgba(15, 23, 42, 0.9);
+    color: white;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 0.5rem;
+    pointer-events: none;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(4px);
+}
+
+.arrow {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -4px;
+    border-width: 4px;
+    border-style: solid;
+    border-color: rgba(15, 23, 42, 0.9) transparent transparent transparent;
+}

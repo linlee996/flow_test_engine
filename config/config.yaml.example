@@ -1,0 +1,55 @@
+port: 8080
+
+log:
+  # 日志存储路径，默认可接受，需要修改时更改为完整路径
+  storageLocation: ./logs/
+  # 日志轮换周期（小时），默认可接受
+  rotationTime: 24
+  # 要保留的日志文件数，默认为可接受
+  remainRotationCount: 2
+  # 日志级别设置：3用于正式生产环境；6用于调试环境中更详细的日志记录
+  remainLogLevel: 6
+  # 是否输出为标准输出，默认可接受
+  isStdout: true
+  # 是否以JSON格式登录，默认可接受
+  isJson: false
+  # 当rpc方法日志中KeyAndValue的值len大于50时，输出简化日志
+  isSimplify: true
+
+sqlite:
+  # SQLite数据库文件路径
+  db_path: ./data/flow_test.db
+  # 打开数据库连接的最大数量
+  max_open_conns: 1
+  # 空闲连接池中连接的最大数量
+  max_idle_conns: 1
+  # 连接可复用的最大时间（秒）
+  max_lifetime: 3600
+  # 日志级别: debug, info, warn, error
+  log_level: info
+
+langflow:
+  # 工作流 base_url
+  base_url: http://localhost:7860
+  # 工作流运行端点
+  flow_run_endpoint: /api/v1/run/
+  # 文件端点
+  file_endpoint: /api/v2/files/
+  # 工作流 api key（从 Langflow 设置中获取）
+  api_key: "your-langflow-api-key"
+  # 工作流 ID（从浏览器地址栏获取）
+  flow_id: "your-flow-id"
+  # 文件 component ID
+  file_component_id: "File-xxxxx"
+  # 文件保存 component ID
+  file_save_component_id: "SaveToFile-xxxxx"
+  # 提示词 component ID
+  prompt_component_id: "Prompt-xxxxx"
+
+file:
+  # 最大文件大小（字节），默认 50MB
+  max_file_size: 52428800
+  # 上传文件目录
+  upload_dir: ./uploads
+  # 输出文件目录
+  output_dir: ./outputs

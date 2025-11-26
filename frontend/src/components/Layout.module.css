@@ -1,0 +1,122 @@
+.layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    height: 70px;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logoIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(96, 165, 250, 0.2);
+}
+
+.logo h1 {
+    font-size: 1.125rem;
+    /* 18px */
+    font-weight: 600;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.sidebar {
+    width: 240px;
+    padding: 2rem 1rem;
+    border-right: 1px solid var(--glass-border);
+    position: sticky;
+    top: 70px;
+    height: calc(100vh - 70px);
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.navItem:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text);
+}
+
+.navItem.active {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--color-primary);
+}
+
+.main {
+    flex: 1;
+    padding: 2rem;
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+        padding: 1rem;
+    }
+
+    .nav {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .navItem {
+        white-space: nowrap;
+    }
+}

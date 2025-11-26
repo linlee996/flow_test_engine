@@ -1,0 +1,41 @@
+.card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Bouncy transition */
+    transform-style: preserve-3d;
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+.header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+.content {
+    padding: 1.5rem;
+}

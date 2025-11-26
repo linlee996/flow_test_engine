@@ -1,0 +1,57 @@
+# 二进制文件
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# 测试文件
+*.test
+*.out
+
+# Go 依赖
+vendor/
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+logs/
+*.log
+
+# 数据库文件
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# 上传和输出文件
+uploads/*
+outputs/*
+!uploads/.gitkeep
+!outputs/.gitkeep
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# 配置文件（包含敏感信息）
+config/config.yaml
+
+# 临时文件
+tmp/
+temp/
+*.tmp
