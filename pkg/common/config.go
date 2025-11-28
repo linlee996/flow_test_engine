@@ -24,12 +24,12 @@ type Config struct {
 
 // LogConfig 日志配置
 type LogConfig struct {
-	StorageLocation       string `mapstructure:"storageLocation"`
-	RotationTime          int    `mapstructure:"rotationTime"`          // 日志轮换周期（小时）
-	RemainRotationCount   int    `mapstructure:"remainRotationCount"` // 保留的日志文件数
-	RemainLogLevel        int    `mapstructure:"remainLogLevel"`       // 日志级别: 3=error, 4=warn, 5=info, 6=debug
-	IsStdout              bool   `mapstructure:"isStdout"`
-	IsJson                bool   `mapstructure:"isJson"`
+	StorageLocation     string `mapstructure:"storageLocation"`
+	RotationTime        int    `mapstructure:"rotationTime"`        // 日志轮换周期（小时）
+	RemainRotationCount int    `mapstructure:"remainRotationCount"` // 保留的日志文件数
+	RemainLogLevel      int    `mapstructure:"remainLogLevel"`      // 日志级别: 3=error, 4=warn, 5=info, 6=debug
+	IsStdout            bool   `mapstructure:"isStdout"`
+	IsJson              bool   `mapstructure:"isJson"`
 }
 
 // SQLiteConfig SQLite 配置
@@ -91,8 +91,82 @@ func LoadConfig(configPath string) (*Config, error) {
 	}
 
 	// 环境变量覆盖（优先级：环境变量 > 配置文件）
-	if langflowAPIKey := os.Getenv("LANGFLOW_API_KEY"); langflowAPIKey != "" {
-		config.Custom.APIKey = langflowAPIKey
+	if v := os.Getenv("PORT"); v != "" {
+		config.Port = v
+	}
+
+	// 日志配置
+	if v := os.Getenv("LOG_STORAGE_LOCATION"); v != "" {
+		config.Log.StorageLocation = v
+	}
+	if v := os.Getenv("LOG_ROTATION_TIME"); v != "" {
+		fmt.Sscanf(v, "%d", &config.Log.RotationTime)
+	}
+	if v := os.Getenv("LOG_REMAIN_ROTATION_COUNT"); v != "" {
+		fmt.Sscanf(v, "%d", &config.Log.RemainRotationCount)
+	}
+	if v := os.Getenv("LOG_REMAIN_LOG_LEVEL"); v != "" {
+		fmt.Sscanf(v, "%d", &config.Log.RemainLogLevel)
+	}
+	if v := os.Getenv("LOG_IS_STDOUT"); v != "" {
+		config.Log.IsStdout = v == "true"
+	}
+	if v := os.Getenv("LOG_IS_JSON"); v != "" {
+		config.Log.IsJson = v == "true"
+	}
+
+	// SQLite 配置
+	if v := os.Getenv("SQLITE_DB_PATH"); v != "" {
+		config.SQLite.DBPath = v
+	}
+	if v := os.Getenv("SQLITE_MAX_OPEN_CONNS"); v != "" {
+		fmt.Sscanf(v, "%d", &config.SQLite.MaxOpenConns)
+	}
+	if v := os.Getenv("SQLITE_MAX_IDLE_CONNS"); v != "" {
+		fmt.Sscanf(v, "%d", &config.SQLite.MaxIdleConns)
+	}
+	if v := os.Getenv("SQLITE_MAX_LIFETIME"); v != "" {
+		fmt.Sscanf(v, "%d", &config.SQLite.MaxLifetime)
+	}
+	if v := os.Getenv("SQLITE_LOG_LEVEL"); v != "" {
+		config.SQLite.LogLevel = v
+	}
+
+	// 文件配置
+	if v := os.Getenv("FILE_MAX_FILE_SIZE"); v != "" {
+		fmt.Sscanf(v, "%d", &config.File.MaxFileSize)
+	}
+	if v := os.Getenv("FILE_UPLOAD_DIR"); v != "" {
+		config.File.UploadDir = v
+	}
+	if v := os.Getenv("FILE_OUTPUT_DIR"); v != "" {
+		config.File.OutputDir = v
+	}
+
+	// Langflow 配置
+	if v := os.Getenv("LANGFLOW_BASE_URL"); v != "" {
+		config.Custom.BaseURL = v
+	}
+	if v := os.Getenv("LANGFLOW_FLOW_RUN_ENDPOINT"); v != "" {
+		config.Custom.RunEndpoint = v
+	}
+	if v := os.Getenv("LANGFLOW_FILE_ENDPOINT"); v != "" {
+		config.Custom.FileEndpoint = v
+	}
+	if v := os.Getenv("LANGFLOW_API_KEY"); v != "" {
+		config.Custom.APIKey = v
+	}
+	if v := os.Getenv("LANGFLOW_FLOW_ID"); v != "" {
+		config.Custom.FlowID = v
+	}
+	if v := os.Getenv("LANGFLOW_FILE_COMPONENT_ID"); v != "" {
+		config.Custom.FileComponentID = v
+	}
+	if v := os.Getenv("LANGFLOW_SAVE_FILE_COMPONENT_ID"); v != "" {
+		config.Custom.SaveFileComponentID = v
+	}
+	if v := os.Getenv("LANGFLOW_PROMPT_COMPONENT_ID"); v != "" {
+		config.Custom.PromptComponentID = v
 	}
 
 	return &config, nil
@@ -156,7 +230,7 @@ func InitLogger(cfg *LogConfig) (*zap.Logger, error) {
 		// 配置 lumberjack 日志轮转
 		lumberjackLogger := &lumberjack.Logger{
 			Filename:   logPath,
-			MaxSize:    100, // MB
+			MaxSize:    100,                   // MB
 			MaxAge:     cfg.RotationTime * 24, // 转换为天数
 			MaxBackups: cfg.RemainRotationCount,
 			Compress:   true, // 压缩旧日志

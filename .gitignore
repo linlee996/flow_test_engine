@@ -50,6 +50,7 @@ frontend/.env.*.local
 
 # 配置文件（包含敏感信息）
 config/config.yaml
+.env
 
 # 临时文件
 tmp/
