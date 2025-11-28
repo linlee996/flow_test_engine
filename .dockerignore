@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# 前端依赖
+frontend/node_modules
+frontend/dist
+
+# Go 构建产物
+*.exe
+*.dll
+*.so
+*.dylib
+flow_test_engine
+flow_test_engine_linux_amd64
+dist/
+
+# IDE 配置
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+logs/
+*.log
+nohup.out
+
+# 临时文件
+tmp/
+temp/
+
+# Docker 相关（在构建时不需要）
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# 上传和输出目录（运行时生成）
+uploads/
+outputs/
+data/

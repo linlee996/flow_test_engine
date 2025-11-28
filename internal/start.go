@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 // InitDB 初始化数据库
@@ -97,16 +98,20 @@ func NewGinEngine(
 	r.Use(middleware.LoggerMiddleware(logger))
 	r.Use(middleware.CORSMiddleware())
 
-	// 注册路由
+	// 配置静态文件服务索引页（生产模式）
+	// 优先确保根路径能访问到前端页面
+	r.GET("/", func(c *gin.Context) {
+		c.File("/app/static/index.html")
+	})
+	logger.Info("静态文件索引页已配置")
+
+	// 注册API路由（必须在静态文件通配路由之前注册）
 	RegisterRoutes(r, taskAPI, templateAPI, logger)
 
-	// 添加静态文件服务
-	r.Static("/static", "./static")
-
-	// 根路径重定向到静态文件首页
-	r.GET("/", func(c *gin.Context) {
-		c.File("./static/index.html")
-	})
+	// 配置静态文件通配路由（用于访问静态资源如 JS、CSS、图片等）
+	// 使用 NoRoute 来捕获所有未匹配的路由
+	r.NoRoute(gin.WrapH(http.FileServer(http.Dir("/app/static"))))
+	logger.Info("静态文件服务 404 路由已配置", zap.String("path", "/app/static"))
 
 	logger.Info("Gin引擎初始化完成")
 	return r
