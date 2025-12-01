@@ -47,8 +47,8 @@ COPY --from=backend-builder /app/flow_test_engine /app/
 # 从前端构建阶段复制静态文件到 static 目录
 COPY --from=frontend-builder /app/frontend/dist /app/static
 
-# 复制配置文件
-COPY config /app/config
+# 复制配置模板作为默认配置
+COPY config/config.yaml.example /app/config/config.yaml
 
 # 设置权限
 RUN chmod +x /app/flow_test_engine
@@ -57,7 +57,7 @@ RUN chmod +x /app/flow_test_engine
 EXPOSE 8080
 
 # 设置数据卷
-VOLUME ["/app/data", "/app/uploads", "/app/outputs", "/app/logs", "/app/config"]
+VOLUME ["/app/data", "/app/uploads", "/app/outputs", "/app/logs"]
 
 # 启动命令
 CMD ["/app/flow_test_engine"]

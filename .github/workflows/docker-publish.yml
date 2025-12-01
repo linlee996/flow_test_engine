@@ -35,6 +35,7 @@ jobs:
           images: |
             ${{ secrets.DOCKERHUB_USERNAME }}/flow-test-engine
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
