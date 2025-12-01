@@ -28,6 +28,12 @@ sqlite:
   # 日志级别: debug, info, warn, error
   log_level: info
 
+langflow:
+   # 工作流运行端点
+   flow_run_endpoint: /api/v1/run/
+   # 文件端点
+   file_endpoint: /api/v2/files/
+
 file:
   # 最大文件大小（字节），默认 50MB
   max_file_size: 52428800
