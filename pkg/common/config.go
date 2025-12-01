@@ -68,7 +68,7 @@ type CustomConfig struct {
 // LoadConfig 加载配置文件
 func LoadConfig(configPath string) (*Config, error) {
 	if configPath == "" {
-		configPath = "./config/config.yaml"
+		configPath = "./config/config.yaml.example"
 	}
 
 	// 检查配置文件是否存在

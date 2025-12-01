@@ -28,24 +28,6 @@ sqlite:
   # 日志级别: debug, info, warn, error
   log_level: info
 
-langflow:
-  # 工作流 base_url
-  base_url: http://localhost:7860
-  # 工作流运行端点
-  flow_run_endpoint: /api/v1/run/
-  # 文件端点
-  file_endpoint: /api/v2/files/
-  # 工作流 api key（从 Langflow 设置中获取）
-  api_key: "your-langflow-api-key"
-  # 工作流 ID（从浏览器地址栏获取）
-  flow_id: "your-flow-id"
-  # 文件 component ID
-  file_component_id: "File-xxxxx"
-  # 文件保存 component ID
-  file_save_component_id: "SaveToFile-xxxxx"
-  # 提示词 component ID
-  prompt_component_id: "Prompt-xxxxx"
-
 file:
   # 最大文件大小（字节），默认 50MB
   max_file_size: 52428800
@@ -53,3 +35,15 @@ file:
   upload_dir: ./uploads
   # 输出文件目录
   output_dir: ./outputs
+
+
+
+
+
+
+
+
+
+
+
+
