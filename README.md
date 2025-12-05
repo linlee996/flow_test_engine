@@ -63,7 +63,123 @@ flow_test_engine/
 
 ##  快速开始
 
-### 环境要求
+### 部署方式
+
+本项目支持两种部署方式：
+
+1. **Docker 部署（推荐）**：一键启动，无需配置开发环境
+2. **本地开发部署**：适合开发调试
+
+### 方式一：Docker 部署（推荐）
+
+#### 环境要求
+
+- Docker 20.10+
+- Docker Compose 2.0+
+- Langflow 服务（用于 AI 工作流）
+
+#### 快速启动
+
+1. **准备配置文件**
+
+创建 `docker-compose.yml` 文件（或使用项目提供的文件），修改环境变量：
+
+```yaml
+services:
+  flow-test-engine:
+    image: linlee996/flow-test-engine:latest
+    container_name: flow-test-engine
+    ports:
+      - "8080:8080"
+    volumes:
+      - data:/app/data
+      - uploads:/app/uploads
+      - outputs:/app/outputs
+      - logs:/app/logs
+    environment:
+      - TZ=Asia/Shanghai
+      # 修改为你的 Langflow 配置
+      - LANGFLOW_BASE_URL=http://your-langflow-host:7860
+      - LANGFLOW_API_KEY=your-api-key
+      - LANGFLOW_FLOW_ID=your-flow-id
+      - LANGFLOW_FILE_COMPONENT_ID=File-xxxxx
+      - LANGFLOW_SAVE_FILE_COMPONENT_ID=SaveToFile-xxxxx
+      - LANGFLOW_PROMPT_COMPONENT_ID=Prompt-xxxxx
+    restart: unless-stopped
+
+volumes:
+  data:
+  uploads:
+  outputs:
+  logs:
+```
+
+2. **启动服务**
+
+```bash
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+
+# 停止并删除数据卷
+docker-compose down -v
+```
+
+3. **访问应用**
+
+打开浏览器访问 `http://localhost:8080`
+
+#### 配置说明
+
+**环境变量配置**：
+
+| 环境变量 | 说明 | 示例 |
+|---------|------|------|
+| `LANGFLOW_BASE_URL` | Langflow 服务地址 | `http://10.4.4.237:7860` |
+| `LANGFLOW_API_KEY` | Langflow API 密钥 | `sk-xxx...` |
+| `LANGFLOW_FLOW_ID` | 工作流 ID | `2a1626f8-d206-41a7-bf33-3b934262b07d` |
+| `LANGFLOW_FILE_COMPONENT_ID` | File 组件 ID | `File-DeEXB` |
+| `LANGFLOW_SAVE_FILE_COMPONENT_ID` | SaveToFile 组件 ID | `SaveToFile-Qlkl0` |
+| `LANGFLOW_PROMPT_COMPONENT_ID` | Prompt 组件 ID | `Prompt-pX7x9` |
+| `TZ` | 时区设置 | `Asia/Shanghai` |
+
+**数据持久化**：
+
+项目使用 Docker 卷持久化以下数据：
+- `data`：SQLite 数据库文件
+- `uploads`：上传的需求文档
+- `outputs`：生成的测试用例文件
+- `logs`：应用日志
+
+**自定义配置文件（可选）**：
+
+如需使用自定义配置文件，取消 `docker-compose.yml` 中的注释：
+
+```yaml
+volumes:
+  - ./config/config.yaml:/app/config/config.yaml:ro
+```
+
+#### Docker 镜像构建
+
+如需自行构建镜像：
+
+```bash
+# 构建镜像
+docker build -t flow-test-engine:latest .
+
+# 修改 docker-compose.yml 中的 image 为本地镜像
+# image: flow-test-engine:latest
+```
+
+### 方式二：本地开发部署
+
+#### 环境要求
 
 - Go 1.24.4+
 - Node.js 18+
@@ -105,6 +221,7 @@ langflow run --host 0.0.0.0 --port 7860
    - 其他：`qwen2.5`、`gemini-3-pro` 等
 
    > **注意**：由于 Langflow 没有自动获取模型列表的接口，需要手动输入模型名称。前端显示可能存在问题，但不影响正常运行。
+
    > Base URL 必须添加 /v1 结尾，且不能有多余的斜杠。
    > 如有其他 Langflow 直接支持的厂商 component 组件（如：OpenRouter、Gemini 等），可以直接在 flow 中替换现有 flow 中的 OpenAI 组件。
 
@@ -203,6 +320,18 @@ curl http://localhost:8080/ping
 ```
 
 ### 完整启动流程总结
+
+#### Docker 部署流程
+
+1.  **Langflow 服务**：`langflow run --host 0.0.0.0 --port 7860`
+2.  **导入工作流**：在 Langflow 中导入 `config/Test Case Generation Flow.json`
+3.  **配置 Agent**：设置 OpenAI Base URL、API Key 和 Model
+4.  **获取配置**：复制 Langflow API Key、Flow ID 和组件 ID
+5.  **修改 docker-compose.yml**：填写环境变量配置
+6.  **启动容器**：`docker-compose up -d`
+7.  **访问应用**：打开 `http://localhost:8080`
+
+#### 本地开发流程
 
 1.  **Langflow 服务**：`langflow run --host 0.0.0.0 --port 7860`
 2.  **导入工作流**：在 Langflow 中导入 `config/Test Case Generation Flow.json`
@@ -409,6 +538,89 @@ npm run preview
 ```
 
 ## 常见问题
+
+### Docker 部署相关
+
+### Q: Docker 容器启动失败？
+
+**A**: 检查以下几点：
+1. Docker 和 Docker Compose 版本是否满足要求
+2. 端口 8080 是否被占用：`lsof -i :8080` 或 `netstat -an | grep 8080`
+3. 环境变量配置是否正确
+4. 查看容器日志：`docker-compose logs -f`
+
+### Q: Docker 容器无法连接 Langflow？
+
+**A**:
+1. **网络问题**：确保容器能访问 Langflow 服务
+   - 如果 Langflow 在本机：使用 `host.docker.internal` 或宿主机 IP
+   - 如果 Langflow 在其他机器：确保网络互通
+2. **配置检查**：验证 `LANGFLOW_BASE_URL` 环境变量是否正确
+3. **测试连接**：进入容器测试：
+   ```bash
+   docker exec -it flow-test-engine sh
+   wget -O- http://your-langflow-host:7860/health
+   ```
+
+### Q: 如何查看 Docker 容器日志？
+
+**A**:
+```bash
+# 实时查看所有日志
+docker-compose logs -f
+
+# 查看最近 100 行日志
+docker-compose logs --tail=100
+
+# 只查看错误日志
+docker-compose logs | grep ERROR
+```
+
+### Q: 如何更新 Docker 镜像？
+
+**A**:
+```bash
+# 拉取最新镜像
+docker-compose pull
+
+# 重启服务
+docker-compose up -d
+
+# 清理旧镜像
+docker image prune -f
+```
+
+### Q: 如何备份 Docker 数据？
+
+**A**:
+```bash
+# 备份所有数据卷
+docker run --rm -v flow_test_engine_data:/data -v $(pwd):/backup alpine tar czf /backup/data-backup.tar.gz -C /data .
+docker run --rm -v flow_test_engine_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads-backup.tar.gz -C /data .
+docker run --rm -v flow_test_engine_outputs:/data -v $(pwd):/backup alpine tar czf /backup/outputs-backup.tar.gz -C /data .
+
+# 恢复数据卷
+docker run --rm -v flow_test_engine_data:/data -v $(pwd):/backup alpine tar xzf /backup/data-backup.tar.gz -C /data
+```
+
+### Q: 如何进入容器调试？
+
+**A**:
+```bash
+# 进入容器
+docker exec -it flow-test-engine sh
+
+# 查看配置文件
+cat /app/config/config.yaml
+
+# 查看日志
+tail -f /app/logs/flow.log
+
+# 检查文件权限
+ls -la /app/data /app/uploads /app/outputs
+```
+
+### 应用配置相关
 
 ### Q: Langflow 工作流配置问题？
 
