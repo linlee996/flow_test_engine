@@ -2,55 +2,40 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: '/api/v1',
-    timeout: 10000,
+    timeout: 30000,
 });
 
-export interface ApiResponse<T = any> {
-    code: number;
-    message: string;
-    data: T;
-}
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
-export interface Task {
-    task_id: string;
-    original_filename: string;
-    created_at: string;
-    finished_at?: string;
-    status: number; // 0: Running, 1: Finished, 2: Failed
-    error_message?: string;
-}
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = '/';
+        }
+        return Promise.reject(error);
+    }
+);
 
-export interface TaskListResponse {
-    list: Task[];
-    total: number;
-    page: number;
-    page_size: number;
-    total_pages: number;
-}
-
-export interface TemplateField {
-    name: string;
-    description: string;
-}
-
-export interface Template {
-    id: number;
-    name: string;
-    fields: TemplateField[];
-    is_default: boolean;
-    is_system: boolean;
-    created_at: string;
-    updated_at: string;
-}
-
-export interface UploadResponse {
-    file_path: string;
-    upload_file: string;
-}
+export * from './types';
+import type {
+    Task,
+    TaskListResponse,
+    Template,
+    UploadResponse
+} from './types';
 
 export const taskService = {
-    getTasks: async (page = 1, pageSize = 10) => {
-        const response = await api.get<ApiResponse<TaskListResponse>>('/tasks', {
+    getTasks: async (page = 1, pageSize = 10): Promise<TaskListResponse> => {
+        const response = await api.get<TaskListResponse>('/tasks', {
             params: { page, page_size: pageSize },
         });
         return response.data;
@@ -58,47 +43,104 @@ export const taskService = {
 
     createTask: async (data: {
         file_path: string;
-        upload_file: string;
-        download_file: string;
+        original_filename: string;
+        download_filename?: string;
         template_id?: number | null;
-    }) => {
-        const response = await api.post<ApiResponse>('/task/create', data);
+        provider: string;
+        model: string;
+        advanced_parsing?: boolean;
+    }): Promise<Task> => {
+        const response = await api.post<Task>('/task/create', data);
         return response.data;
     },
 
-    deleteTask: async (taskId: string) => {
-        const response = await api.delete<ApiResponse>(`/tasks/${taskId}`);
+    clarifyTask: async (taskId: number, clarificationInput: string): Promise<Task> => {
+        const response = await api.post<Task>(`/task/${taskId}/clarify`, {
+            clarification_input: clarificationInput,
+        });
         return response.data;
     },
 
-    uploadFile: async (file: File) => {
+    getSummary: async (taskId: number): Promise<{ summary: string }> => {
+        const response = await api.get<{ summary: string }>(`/task/${taskId}/summary`);
+        return response.data;
+    },
+
+    deleteTask: async (taskId: number) => {
+        const response = await api.delete(`/tasks/${taskId}`);
+        return response.data;
+    },
+
+    uploadFile: async (file: File): Promise<UploadResponse> => {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await api.post<ApiResponse<UploadResponse>>('/upload', formData, {
+        const response = await api.post<UploadResponse>('/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
         return response.data;
     },
+
+    getDownloadUrl: (taskId: number) => `/api/v1/download/${taskId}`,
+
+    downloadFile: async (taskId: number) => {
+        const response = await api.get(`/download/${taskId}`, {
+            responseType: 'blob',
+        });
+
+        // Extract filename from Content-Disposition header
+        const contentDisposition = response.headers['content-disposition'];
+        let filename = 'test_cases.xlsx';
+        if (contentDisposition) {
+            const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (match && match[1]) {
+                filename = match[1].replace(/['"]/g, '');
+            }
+        }
+
+        // Create blob URL and trigger download
+        const blob = new Blob([response.data], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    },
 };
 
 export const templateService = {
-    getTemplates: async () => {
-        const response = await api.get<ApiResponse<Template[]>>('/templates');
+    getTemplates: async (): Promise<Template[]> => {
+        const response = await api.get<Template[]>('/templates');
         return response.data;
     },
 
-    saveTemplate: async (data: { id?: number; name: string; fields: TemplateField[] }) => {
-        if (data.id) {
-            const response = await api.put<ApiResponse>(`/templates`, data);
-            return response.data;
-        } else {
-            const response = await api.post<ApiResponse>('/templates', data);
-            return response.data;
-        }
+    createTemplate: async (data: { name: string; fields: { name: string; description: string }[]; is_default?: boolean }): Promise<Template> => {
+        const response = await api.post<Template>('/templates', data);
+        return response.data;
+    },
+
+    updateTemplate: async (data: { id: number; name: string; fields: { name: string; description: string }[]; is_default?: boolean }): Promise<Template> => {
+        const response = await api.put<Template>('/templates', data);
+        return response.data;
     },
 
     deleteTemplate: async (id: number) => {
-        const response = await api.delete<ApiResponse>(`/templates/${id}`);
+        const response = await api.delete(`/templates/${id}`);
+        return response.data;
+    },
+};
+
+// 旧版 LLM Config API 已删除,现在使用 /llm-configs/provider-* 相关的新版 API
+export const llmConfigService = {};
+
+
+export const authService = {
+    login: async (data: { username: string; password: string }) => {
+        const response = await api.post<{ token: string; username: string }>('/auth/login', data);
         return response.data;
     },
 };

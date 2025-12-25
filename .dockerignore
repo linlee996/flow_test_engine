@@ -44,3 +44,6 @@ docker-compose*
 uploads/
 outputs/
 data/
+
+# Python 虚拟环境
+backend/.venv

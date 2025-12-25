@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Eye } from 'lucide-react';
-import { templateService, type Template, type TemplateField } from '../services/api';
+import { Plus, Trash2, Edit2, Eye, Star, X } from 'lucide-react';
+import { templateService, type Template } from '../services/api';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
@@ -13,7 +13,8 @@ export const TemplateManager: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Partial<Template>>({
         name: '',
-        fields: [{ name: '', description: '' }],
+        fields: [],
+        is_default: false,
     });
     const [isViewMode, setIsViewMode] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -26,7 +27,7 @@ export const TemplateManager: React.FC = () => {
         setIsLoading(true);
         try {
             const data = await templateService.getTemplates();
-            setTemplates(data.data);
+            setTemplates(data);
         } catch (err) {
             console.error('Failed to load templates', err);
         } finally {
@@ -35,7 +36,11 @@ export const TemplateManager: React.FC = () => {
     };
 
     const handleCreate = () => {
-        setEditingTemplate({ name: '', fields: [{ name: '', description: '' }] });
+        setEditingTemplate({
+            name: '',
+            fields: [{ name: '', description: '' }],
+            is_default: false
+        });
         setIsViewMode(false);
         setIsModalOpen(true);
     };
@@ -70,7 +75,20 @@ export const TemplateManager: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            await templateService.saveTemplate(editingTemplate as any);
+            if (editingTemplate.id) {
+                await templateService.updateTemplate({
+                    id: editingTemplate.id,
+                    name: editingTemplate.name || '',
+                    fields: editingTemplate.fields || [],
+                    is_default: editingTemplate.is_default,
+                });
+            } else {
+                await templateService.createTemplate({
+                    name: editingTemplate.name || '',
+                    fields: editingTemplate.fields || [],
+                    is_default: editingTemplate.is_default,
+                });
+            }
             setIsModalOpen(false);
             loadTemplates();
         } catch (err) {
@@ -91,33 +109,51 @@ export const TemplateManager: React.FC = () => {
         setEditingTemplate({ ...editingTemplate, fields: newFields });
     };
 
-    const updateField = (index: number, key: keyof TemplateField, value: string) => {
+    const updateField = (index: number, field: 'name' | 'description', value: string) => {
         const newFields = [...(editingTemplate.fields || [])];
-        newFields[index] = { ...newFields[index], [key]: value };
+        newFields[index][field] = value;
         setEditingTemplate({ ...editingTemplate, fields: newFields });
     };
 
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h2>Templates</h2>
+                <h2>模板管理</h2>
                 <Button onClick={handleCreate} icon={<Plus size={16} />}>
-                    Create Template
+                    创建模板
                 </Button>
             </div>
 
             <div className={styles.grid}>
-                {isLoading && <p>Loading templates...</p>}
+                {isLoading && <p>正在加载...</p>}
+                {!isLoading && templates.length === 0 && (
+                    <Card className={styles.emptyCard}>
+                        <p>暂无模板，请创建！</p>
+                    </Card>
+                )}
                 {!isLoading && templates.map((template) => (
                     <Card key={template.id} className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3>{template.name}</h3>
-                            {template.is_default && <span className={styles.badge}>Default</span>}
+                            <div className={styles.badges}>
+                                {template.is_default && (
+                                    <span className={styles.badge}>
+                                        <Star size={12} /> 默认
+                                    </span>
+                                )}
+                                {template.is_system && (
+                                    <span className={styles.systemBadge}>系统内置</span>
+                                )}
+                            </div>
                         </div>
                         <div className={styles.cardBody}>
-                            <p>{template.fields.length} fields configured</p>
+                            <p className={styles.preview}>
+                                {template.fields.length} 个字段：
+                                {template.fields.slice(0, 3).map(f => f.name).join('、')}
+                                {template.fields.length > 3 ? '...' : ''}
+                            </p>
                             <div className={styles.actions}>
-                                {!template.is_system && (
+                                {!template.is_system ? (
                                     <>
                                         <Button
                                             size="sm"
@@ -125,7 +161,7 @@ export const TemplateManager: React.FC = () => {
                                             icon={<Edit2 size={14} />}
                                             onClick={() => handleEdit(template)}
                                         >
-                                            Edit
+                                            编辑
                                         </Button>
                                         <Button
                                             size="sm"
@@ -133,22 +169,18 @@ export const TemplateManager: React.FC = () => {
                                             icon={<Trash2 size={14} />}
                                             onClick={() => handleDeleteClick(template.id)}
                                         >
-                                            Delete
+                                            删除
                                         </Button>
                                     </>
-                                )}
-                                {template.is_system && (
-                                    <>
-                                        <Button
-                                            size="sm"
-                                            variant="secondary"
-                                            icon={<Eye size={14} />}
-                                            onClick={() => handleView(template)}
-                                        >
-                                            View
-                                        </Button>
-                                        <span className={styles.systemBadge}>System Template</span>
-                                    </>
+                                ) : (
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        icon={<Eye size={14} />}
+                                        onClick={() => handleView(template)}
+                                    >
+                                        查看
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -159,62 +191,82 @@ export const TemplateManager: React.FC = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={isViewMode ? 'View Template' : (editingTemplate.id ? 'Edit Template' : 'Create Template')}
+                title={isViewMode ? '查看模板' : (editingTemplate.id ? '编辑模板' : '创建模板')}
                 footer={
                     <>
                         <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
-                            {isViewMode ? 'Close' : 'Cancel'}
+                            {isViewMode ? '关闭' : '取消'}
                         </Button>
-                        {!isViewMode && <Button onClick={handleSave}>Save Template</Button>}
+                        {!isViewMode && <Button onClick={handleSave}>保存模板</Button>}
                     </>
                 }
             >
                 <div className={styles.form}>
                     <div className={styles.field}>
-                        <label>Template Name</label>
+                        <label>模板名称</label>
                         <input
                             className={styles.input}
                             value={editingTemplate.name}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                            placeholder="e.g. Simple Template"
+                            placeholder="例如：API 测试模板"
                             disabled={isViewMode}
                         />
                     </div>
 
                     <div className={styles.field}>
-                        <label>Fields</label>
-                        {editingTemplate.fields?.map((field, index) => (
-                            <div key={index} className={styles.fieldRow}>
-                                <input
-                                    className={styles.input}
-                                    placeholder="Field Name"
-                                    value={field.name}
-                                    onChange={(e) => updateField(index, 'name', e.target.value)}
-                                    disabled={isViewMode}
-                                />
-                                <input
-                                    className={styles.input}
-                                    placeholder="Description"
-                                    value={field.description}
-                                    onChange={(e) => updateField(index, 'description', e.target.value)}
-                                    disabled={isViewMode}
-                                />
-                                {!isViewMode && (
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => removeField(index)}
-                                        icon={<Trash2 size={14} />}
+                        <label>字段列表</label>
+                        <div className={styles.fieldsList}>
+                            {(editingTemplate.fields || []).map((field, index) => (
+                                <div key={index} className={styles.fieldRow}>
+                                    <input
+                                        className={styles.fieldInput}
+                                        value={field.name}
+                                        onChange={(e) => updateField(index, 'name', e.target.value)}
+                                        placeholder="字段名称"
+                                        disabled={isViewMode}
                                     />
-                                )}
-                            </div>
-                        ))}
+                                    <input
+                                        className={styles.fieldInput}
+                                        value={field.description}
+                                        onChange={(e) => updateField(index, 'description', e.target.value)}
+                                        placeholder="字段描述"
+                                        disabled={isViewMode}
+                                    />
+                                    {!isViewMode && (
+                                        <button
+                                            className={styles.removeBtn}
+                                            onClick={() => removeField(index)}
+                                            type="button"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                         {!isViewMode && (
-                            <Button size="sm" variant="secondary" onClick={addField} icon={<Plus size={14} />}>
-                                Add Field
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={addField}
+                                icon={<Plus size={14} />}
+                            >
+                                添加字段
                             </Button>
                         )}
                     </div>
+
+                    {!isViewMode && (
+                        <div className={styles.checkbox}>
+                            <input
+                                type="checkbox"
+                                id="is_default"
+                                checked={editingTemplate.is_default || false}
+                                onChange={(e) => setEditingTemplate({ ...editingTemplate, is_default: e.target.checked })}
+                            />
+                            <label htmlFor="is_default">设为默认模板</label>
+                        </div>
+                    )}
                 </div>
             </Modal>
 
@@ -222,11 +274,11 @@ export const TemplateManager: React.FC = () => {
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={handleConfirmDelete}
-                title="Delete Template"
-                message="Delete this template?"
-                confirmText="Delete"
-                cancelText="Cancel"
+                title="删除模板"
+                message="确定要删除这个模板吗？"
+                confirmText="删除"
+                cancelText="取消"
             />
-        </div >
+        </div>
     );
 };

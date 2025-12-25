@@ -1,0 +1,42 @@
+[project]
+name = "flow-test-engine"
+version = "0.1.0"
+description = "智能测试用例生成引擎 - LangGraph + Docling 驱动"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.12",
+    "sqlalchemy>=2.0.0",
+    "aiosqlite>=0.20.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "docling>=2.15.0",
+    "langgraph>=0.2.0",
+    "langgraph-checkpoint>=2.0.0",
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "greenlet>=3.3.0",
+    "easyocr>=1.7.0",
+    "onnxruntime>=1.16.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+]

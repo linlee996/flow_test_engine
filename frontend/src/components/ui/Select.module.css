@@ -88,3 +88,33 @@
 .check {
     color: var(--color-primary);
 }
+
+/* Grouped Select styles */
+.group {
+    margin-bottom: 0.5rem;
+}
+
+.group:last-child {
+    margin-bottom: 0;
+}
+
+.groupHeader {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+}
+
+.emptyMessage {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}

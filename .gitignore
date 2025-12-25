@@ -1,17 +1,26 @@
-# 二进制文件
-main
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.env
 
-# 测试文件
-*.test
-*.out
+# Python 数据和输出
+backend/data/
+backend/uploads/*
+backend/outputs/*
+!backend/uploads/.gitkeep
+!backend/outputs/.gitkeep
 
-# Go 依赖
-vendor/
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 
 # IDE 配置
 .idea/
@@ -29,30 +38,16 @@ logs/
 *.log
 
 # 数据库文件
-data/
 *.db
 *.sqlite
 *.sqlite3
-
-# 上传和输出文件
-uploads/*
-outputs/*
-!uploads/.gitkeep
-!outputs/.gitkeep
-
-# 前端
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-frontend/.env
-frontend/.env.local
-frontend/.env.*.local
-
-# 配置文件（包含敏感信息）
-config/config.yaml
-.env
 
 # 临时文件
 tmp/
 temp/
 *.tmp
+
+# 根目录不应该有的文件（防止误操作）
+/node_modules/
+/package-lock.json
+/package.json

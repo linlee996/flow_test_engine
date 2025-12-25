@@ -77,11 +77,50 @@
     gap: 0.5rem;
 }
 
+.fieldsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
 .fieldRow {
     display: grid;
     grid-template-columns: 1fr 2fr auto;
     gap: 0.5rem;
     align-items: center;
+}
+
+.fieldInput {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.fieldInput:focus {
+    border-color: var(--color-primary);
+}
+
+.removeBtn {
+    padding: 0.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-sm);
+    color: #ef4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.removeBtn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.3);
 }
 
 .input {
@@ -96,4 +135,58 @@
 
 .input:focus {
     border-color: var(--color-primary);
+}
+
+.textarea {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+    min-height: 150px;
+    font-family: inherit;
+}
+
+.textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+.checkbox label {
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.badges {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.preview {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    min-height: 3rem;
+}
+
+.emptyCard {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
 }

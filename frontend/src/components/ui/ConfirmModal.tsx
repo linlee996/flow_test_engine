@@ -21,8 +21,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     onConfirm,
     title,
     message,
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
+    confirmText = '确定',
+    cancelText = '取消',
     isLoading = false,
 }) => {
     return (
