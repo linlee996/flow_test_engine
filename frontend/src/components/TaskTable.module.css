@@ -81,6 +81,18 @@
     font-size: 0.875rem;
 }
 
+.clarifyRow td {
+    padding: 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.clarifyPreview {
+    padding: 0.75rem 1.5rem;
+    background: rgba(168, 85, 247, 0.1);
+    color: #c084fc;
+    font-size: 0.875rem;
+}
+
 .loading,
 .empty {
     display: flex;

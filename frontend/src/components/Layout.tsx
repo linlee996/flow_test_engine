@@ -1,14 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FileText, Plus } from 'lucide-react';
+import { LayoutDashboard, FileText, Plus, Bot } from 'lucide-react';
 import { Button } from './ui/Button';
 import styles from './Layout.module.css';
 
 interface LayoutProps {
     children: React.ReactNode;
-    activeTab: 'tasks' | 'templates';
-    onTabChange: (tab: 'tasks' | 'templates') => void;
+    activeTab: 'tasks' | 'templates' | 'llm';
+    onTabChange: (tab: 'tasks' | 'templates' | 'llm') => void;
     onCreateTask: () => void;
+    username?: string;
+    onLogout?: () => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({
@@ -16,6 +18,8 @@ export const Layout: React.FC<LayoutProps> = ({
     activeTab,
     onTabChange,
     onCreateTask,
+    username,
+    onLogout,
 }) => {
     return (
         <div className={styles.layout}>
@@ -48,13 +52,26 @@ export const Layout: React.FC<LayoutProps> = ({
                     <h1>Flow Test Engine</h1>
                 </div>
                 <div className={styles.actions}>
+                    {username && (
+                        <span style={{ marginRight: '1rem', color: 'var(--color-text-secondary)' }}>
+                            {username}
+                        </span>
+                    )}
                     <Button
                         variant="primary"
                         icon={<Plus size={18} />}
                         onClick={onCreateTask}
                     >
-                        New Task
+                        新建任务
                     </Button>
+                    {onLogout && (
+                        <Button
+                            variant="secondary"
+                            onClick={onLogout}
+                        >
+                            退出
+                        </Button>
+                    )}
                 </div>
             </header>
 
@@ -66,14 +83,21 @@ export const Layout: React.FC<LayoutProps> = ({
                             onClick={() => onTabChange('tasks')}
                         >
                             <LayoutDashboard size={20} />
-                            Tasks
+                            任务列表
                         </button>
                         <button
                             className={`${styles.navItem} ${activeTab === 'templates' ? styles.active : ''}`}
                             onClick={() => onTabChange('templates')}
                         >
                             <FileText size={20} />
-                            Templates
+                            模板管理
+                        </button>
+                        <button
+                            className={`${styles.navItem} ${activeTab === 'llm' ? styles.active : ''}`}
+                            onClick={() => onTabChange('llm')}
+                        >
+                            <Bot size={20} />
+                            模型配置
                         </button>
                     </nav>
                 </aside>

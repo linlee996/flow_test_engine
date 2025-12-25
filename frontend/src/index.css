@@ -18,8 +18,12 @@
   --color-primary-hover: #3B82F6;
 
   --color-text: #1e293b;
+  --color-text-primary: #1e293b;
   --color-text-secondary: #64748b;
   --color-border: rgba(255, 255, 255, 0.5);
+
+  --color-bg-primary: #F5F7FA;
+  --color-bg-secondary: rgba(255, 255, 255, 0.85);
 
   --radius-sm: 12px;
   --radius-md: 16px;

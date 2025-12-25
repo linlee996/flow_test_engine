@@ -1,24 +1,25 @@
 # Flow Test Engine
 
-基于 Langflow 工作流的智能测试用例生成引擎，支持从需求文档自动生成测试用例。
+基于 LangGraph + Docling 的智能测试用例生成引擎，支持从需求文档自动生成测试用例。
 
-##  特性
+## ✨ 特性
 
--  **AI 驱动**：集成 Langflow 工作流，智能解析需求文档
--  **多格式支持**：支持 PDF、Word、Excel 等多种文档格式
--  **现代化界面**：基于 React + TypeScript 的响应式 Web 界面
--  **任务管理**：完整的任务创建、查询、删除功能
--  **实时状态**：任务执行状态实时更新
--  **轻量存储**：使用 SQLite 数据库，无需额外安装
+- 🤖 **AI 驱动**：基于 LangGraph 工作流，智能解析需求文档
+- 📄 **多格式支持**：支持 PDF、DOCX、TXT、MD 等多种文档格式
+- 🔄 **人机协作**：支持澄清问题的交互式工作流
+- 🎨 **现代化界面**：基于 React + TypeScript 的响应式 Web 界面
+- 📊 **Excel 导出**：自动生成结构化的测试用例 Excel 文档
+- 💾 **轻量存储**：使用 SQLite 数据库，无需额外安装
 
-## 技术栈
+## 🛠 技术栈
 
 ### 后端
-- **语言**：Go 1.24.4+
-- **框架**：Gin Web Framework
-- **数据库**：SQLite (GORM)
-- **日志**：Zap
-- **配置**：Viper
+- **语言**：Python 3.13+
+- **框架**：FastAPI
+- **AI 工作流**：LangGraph + LangChain
+- **文档解析**：Docling
+- **数据库**：SQLite (SQLAlchemy)
+- **包管理**：uv
 
 ### 前端
 - **框架**：React 19 + TypeScript
@@ -27,48 +28,39 @@
 - **动画**：Framer Motion
 - **HTTP 客户端**：Axios
 
-##  项目结构
+## 📁 项目结构
 
 ```
 flow_test_engine/
-├── cmd/
-│   └── api/                              # 服务启动入口
-├── config/
-│   ├── config.yaml                       # 配置文件
-│   ├── prompt.md                         # AI 提示词模板
-│   └── Test Case Generation Flow.json   # Langflow 工作流文件（需导入）
-├── internal/                             # 内部模块
-│   ├── api/                              # HTTP 接口层
-│   ├── service/                          # 业务逻辑层
-│   ├── repo/                             # 数据访问层
-│   ├── assemble/                         # DTO 转换层
-│   ├── dto/                              # 数据传输对象
-│   ├── middleware/                       # 中间件
-│   └── errcodes/                         # 错误码定义
-├── pkg/                                  # 公共包
-│   ├── common/                           # 配置管理
-│   └── infrastructure/                   # 基础设施（数据库、日志）
-├── utils/                                # 工具函数
-├── frontend/                             # 前端项目
+├── backend/                    # Python 后端
+│   ├── app/
+│   │   ├── api/               # API 路由
+│   │   ├── core/              # 核心模块（配置、数据库、安全）
+│   │   ├── models/            # 数据模型
+│   │   ├── schemas/           # Pydantic Schema
+│   │   ├── services/          # 业务服务
+│   │   │   ├── document_parser.py   # Docling 文档解析
+│   │   │   ├── case_generator.py    # LangGraph 工作流
+│   │   │   └── result_extractor.py  # 结果提取
+│   │   └── main.py            # FastAPI 入口
+│   ├── config/
+│   │   └── prompt.md          # AI 提示词模板
+│   ├── data/                  # SQLite 数据库
+│   ├── uploads/               # 上传文件
+│   ├── outputs/               # 输出文件
+│   ├── .env.example           # 环境变量示例
+│   └── pyproject.toml         # Python 依赖配置
+├── frontend/                   # 前端项目
 │   ├── src/
-│   │   ├── components/                   # React 组件
-│   │   ├── services/                     # API 服务
-│   │   └── App.tsx                       # 主应用
+│   │   ├── components/        # React 组件
+│   │   ├── services/          # API 服务
+│   │   └── App.tsx            # 主应用
 │   └── package.json
-├── data/                                 # SQLite 数据库文件
-├── uploads/                              # 上传文件目录
-├── outputs/                              # 输出文件目录
-└── scripts/                              # 脚本文件
+├── Dockerfile                  # Docker 镜像构建
+└── docker-compose.yml          # Docker Compose 配置
 ```
 
-##  快速开始
-
-### 部署方式
-
-本项目支持两种部署方式：
-
-1. **Docker 部署（推荐）**：一键启动，无需配置开发环境
-2. **本地开发部署**：适合开发调试
+## 🚀 快速开始
 
 ### 方式一：Docker 部署（推荐）
 
@@ -76,48 +68,28 @@ flow_test_engine/
 
 - Docker 20.10+
 - Docker Compose 2.0+
-- Langflow 服务（用于 AI 工作流）
 
 #### 快速启动
 
-1. **准备配置文件**
-
-创建 `docker-compose.yml` 文件（或使用项目提供的文件），修改环境变量：
-
-```yaml
-services:
-  flow-test-engine:
-    image: linlee996/flow-test-engine:latest
-    container_name: flow-test-engine
-    ports:
-      - "8080:8080"
-    volumes:
-      - data:/app/data
-      - uploads:/app/uploads
-      - outputs:/app/outputs
-      - logs:/app/logs
-    environment:
-      - TZ=Asia/Shanghai
-      # 修改为你的 Langflow 配置
-      - LANGFLOW_BASE_URL=http://your-langflow-host:7860
-      - LANGFLOW_API_KEY=your-api-key
-      - LANGFLOW_FLOW_ID=your-flow-id
-      - LANGFLOW_FILE_COMPONENT_ID=File-xxxxx
-      - LANGFLOW_SAVE_FILE_COMPONENT_ID=SaveToFile-xxxxx
-      - LANGFLOW_PROMPT_COMPONENT_ID=Prompt-xxxxx
-    restart: unless-stopped
-
-volumes:
-  data:
-  uploads:
-  outputs:
-  logs:
-```
-
-2. **启动服务**
+1. **创建部署目录并下载配置文件**
 
 ```bash
-# 启动服务
+mkdir flow_test_engine && cd flow_test_engine
+
+# 下载 docker-compose.yml
+curl -O https://raw.githubusercontent.com/linlee996/flow_test_engine/main/docker-compose.yml
+```
+
+2. **创建数据目录**
+
+```bash
+mkdir -p data uploads outputs logs
+```
+
+3. **启动服务**
+
+```bash
+# 拉取镜像并启动
 docker-compose up -d
 
 # 查看日志
@@ -125,174 +97,44 @@ docker-compose logs -f
 
 # 停止服务
 docker-compose down
-
-# 停止并删除数据卷
-docker-compose down -v
 ```
 
-3. **访问应用**
+4. **访问应用**
 
 打开浏览器访问 `http://localhost:8080`
 
-#### 配置说明
-
-**环境变量配置**：
-
-| 环境变量 | 说明 | 示例 |
-|---------|------|------|
-| `LANGFLOW_BASE_URL` | Langflow 服务地址 | `http://10.4.4.237:7860` |
-| `LANGFLOW_API_KEY` | Langflow API 密钥 | `sk-xxx...` |
-| `LANGFLOW_FLOW_ID` | 工作流 ID | `2a1626f8-d206-41a7-bf33-3b934262b07d` |
-| `LANGFLOW_FILE_COMPONENT_ID` | File 组件 ID | `File-DeEXB` |
-| `LANGFLOW_SAVE_FILE_COMPONENT_ID` | SaveToFile 组件 ID | `SaveToFile-Qlkl0` |
-| `LANGFLOW_PROMPT_COMPONENT_ID` | Prompt 组件 ID | `Prompt-pX7x9` |
-| `TZ` | 时区设置 | `Asia/Shanghai` |
-
-**数据持久化**：
-
-项目使用 Docker 卷持久化以下数据：
-- `data`：SQLite 数据库文件
-- `uploads`：上传的需求文档
-- `outputs`：生成的测试用例文件
-- `logs`：应用日志
-
-**自定义配置文件（可选）**：
-
-如需使用自定义配置文件，取消 `docker-compose.yml` 中的注释：
-
-```yaml
-volumes:
-  - ./config/config.yaml:/app/config/config.yaml:ro
-```
-
-#### Docker 镜像构建
-
-如需自行构建镜像：
-
-```bash
-# 构建镜像
-docker build -t flow-test-engine:latest .
-
-# 修改 docker-compose.yml 中的 image 为本地镜像
-# image: flow-test-engine:latest
-```
+> **注意**：镜像托管在 GitHub Container Registry (ghcr.io)，首次拉取可能需要一些时间
 
 ### 方式二：本地开发部署
 
 #### 环境要求
 
-- Go 1.24.4+
-- Node.js 18+
-- Langflow 服务（用于 AI 工作流）
-- OpenAI 兼容的 LLM API（如 OpenAI、Azure OpenAI、本地模型等）或其他 Langflow 支持的模型
+- Python 3.13+
+- Node.js 20+
+- uv (Python 包管理器)
 
-### 第一步：搭建 Langflow 服务
-
-#### 1.1 安装 Langflow
+#### 启动后端
 
 ```bash
-# 使用 pip 安装
-pip install langflow
+cd backend
 
-# 启动 Langflow 服务
-langflow run --host 0.0.0.0 --port 7860
-```
+# 安装 uv（如果未安装）
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-访问 `http://localhost:7860` 打开 Langflow 界面。
-
-#### 1.2 导入工作流
-
-1. 在 Langflow 界面中，点击 **Import** 按钮
-2. 选择项目中的 `config/Test Case Generation Flow.json` 文件
-3. 工作流将自动加载到 Langflow 中
-
-#### 1.3 配置 OpenAI Agent
-
-在导入的工作流中，找到 OpenAI 组件并配置：
-
-1. **Base URL**：填写你的 LLM API 地址
-   - OpenAI 官方：`https://api.openai.com/v1`
-   - 其他中转 API 模型：`http://api.newapi:8000/v1`
-
-2. **API Key**：填写对应的 API 密钥
-
-3. **Model**：手动输入模型名称
-   - OpenAI：`gpt-4`、`gpt-3.5-turbo`
-   - 其他：`qwen2.5`、`gemini-3-pro` 等
-
-   > **注意**：由于 Langflow 没有自动获取模型列表的接口，需要手动输入模型名称。前端显示可能存在问题，但不影响正常运行。
-
-   > Base URL 必须添加 /v1 结尾，且不能有多余的斜杠。
-   > 如有其他 Langflow 直接支持的厂商 component 组件（如：OpenRouter、Gemini 等），可以直接在 flow 中替换现有 flow 中的 OpenAI 组件。
-
-#### 1.4 获取配置信息
-
-配置完成后，需要获取以下信息：
-
-1. **Langflow API Key**：
-   - 点击右上角设置图标
-   - 进入 **Settings** → **API Keys**
-   - 创建或复制 API Key
-
-2. **工作流 ID (Flow ID)**：
-   - 在工作流页面，查看浏览器地址栏
-   - URL 格式：`http://localhost:7860/flow/{flow_id}`
-   - 复制 `{flow_id}` 部分
-
-3. **组件 ID**：
-   - 点击工作流中的各个组件
-   - 在组件设置面板中找到组件 ID
-   - 需要获取以下三个组件的 ID：
-     - **File 组件 ID**：文件输入组件
-     - **SaveToFile 组件 ID**：文件保存组件
-     - **Prompt 组件 ID**：提示词组件
-
-### 第二步：配置项目
-
-编辑 `config/config.yaml`，填入上一步获取的信息：
-
-```yaml
-port: 8080
-
-sqlite:
-  db_path: ./data/flow_test.db
-  max_open_conns: 1
-  max_idle_conns: 1
-
-langflow:
-  # Langflow 服务地址
-  base_url: http://localhost:7860
-  # Langflow API Key（从 Langflow 设置中获取）
-  api_key: "sk-xxx..."
-  # 工作流 ID（从浏览器地址栏获取）
-  flow_id: "2a1626f8-d206-41a7-bf33-3b934262b07d"
-  # File 组件 ID
-  file_component_id: "File-DeEXB"
-  # SaveToFile 组件 ID
-  file_save_component_id: "SaveToFile-Qlkl0"
-  # Prompt 组件 ID
-  prompt_component_id: "Prompt-pX7x9"
-
-file:
-  max_file_size: 52428800  # 50MB
-  upload_dir: ./uploads
-  output_dir: ./outputs
-```
-
-### 第三步：启动后端服务
-
-```bash
 # 安装依赖
-go mod download
+uv sync
 
-# 运行服务
-cd cmd/api
-go run main.go
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件，填入 OpenAI API Key
+
+# 启动服务
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
-服务将在 `http://localhost:8080` 启动
+后端服务将在 `http://localhost:8080` 启动
 
-### 第四步：启动前端服务
+#### 启动前端
 
 ```bash
 cd frontend
@@ -309,378 +151,209 @@ npm run build
 
 前端开发服务器将在 `http://localhost:5173` 启动
 
-### 第五步：验证服务
-
-```bash
-# 健康检查
-curl http://localhost:8080/ping
-
-# 预期响应
-{"code":0,"message":"pong"}
-```
-
-### 完整启动流程总结
-
-#### Docker 部署流程
-
-1.  **Langflow 服务**：`langflow run --host 0.0.0.0 --port 7860`
-2.  **导入工作流**：在 Langflow 中导入 `config/Test Case Generation Flow.json`
-3.  **配置 Agent**：设置 OpenAI Base URL、API Key 和 Model
-4.  **获取配置**：复制 Langflow API Key、Flow ID 和组件 ID
-5.  **修改 docker-compose.yml**：填写环境变量配置
-6.  **启动容器**：`docker-compose up -d`
-7.  **访问应用**：打开 `http://localhost:8080`
-
-#### 本地开发流程
-
-1.  **Langflow 服务**：`langflow run --host 0.0.0.0 --port 7860`
-2.  **导入工作流**：在 Langflow 中导入 `config/Test Case Generation Flow.json`
-3.  **配置 Agent**：设置 OpenAI Base URL、API Key 和 Model
-4.  **获取配置**：复制 Langflow API Key、Flow ID 和组件 ID
-5.  **更新配置**：填写 `config/config.yaml`
-6.  **启动后端**：`cd cmd/api && go run main.go`
-7.  **启动前端**：`cd frontend && npm run dev`
-8.  **访问应用**：打开 `http://localhost:5173`
-
 ## 📖 API 文档
 
 ### 基础信息
 
 - **Base URL**: `http://localhost:8080`
+- **API 前缀**: `/api/v1`
 - **响应格式**: JSON
 
-### 统一响应结构
+### 认证接口
 
-```json
+#### 注册
+
+```http
+POST /api/v1/auth/register
+Content-Type: application/json
+
 {
-  "code": 0,           // 0: 成功, 1: 失败
-  "message": "操作成功",
-  "data": { ... }      // 业务数据
+  "username": "user",
+  "email": "user@example.com",
+  "password": "password123"
 }
 ```
 
-### 接口列表
-
-#### 1. 健康检查
+#### 登录
 
 ```http
-GET /ping
+POST /api/v1/auth/login
+Content-Type: application/x-www-form-urlencoded
+
+username=user&password=password123
 ```
 
-#### 2. 创建任务
+### 任务接口
+
+#### 上传文件
 
 ```http
-POST /api/v1/task/create
+POST /api/v1/upload
 Content-Type: multipart/form-data
 
 file: <文件>
 ```
 
-**响应示例**：
-```json
-{
-  "code": 0,
-  "message": "任务创建成功",
-  "data": {
-    "task_id": "123e4567-e89b-12d3-a456-426614174000"
-  }
-}
-```
-
-#### 3. 查询任务列表
+#### 创建任务
 
 ```http
-GET /api/v1/task/list?page=1&page_size=10&status=0
-```
-
-**查询参数**：
-- `page`: 页码（默认 1）
-- `page_size`: 每页数量（默认 20，最大 100）
-- `status`: 状态筛选（0: 运行中, 1: 完成, 2: 失败）
-- `task_id`: 任务 ID 筛选
-- `original_filename`: 文件名模糊搜索
-
-**响应示例**：
-```json
-{
-  "code": 0,
-  "message": "查询成功",
-  "data": {
-    "list": [
-      {
-        "id": 1,
-        "task_id": "123e4567-e89b-12d3-a456-426614174000",
-        "original_filename": "需求文档.pdf",
-        "file_type": "pdf",
-        "status": 1,
-        "error_message": "",
-        "created_at": "2025-11-17 15:00:00",
-        "finished_at": "2025-11-17 15:05:00",
-        "output_file_path": "test_cases.xlsx",
-        "download_file_name": "test_cases_123.xlsx"
-      }
-    ],
-    "total": 100,
-    "page": 1,
-    "page_size": 10,
-    "total_pages": 10
-  }
-}
-```
-
-#### 4. 删除任务
-
-```http
-DELETE /api/v1/task/delete
+POST /api/v1/task/create
 Content-Type: application/json
+Authorization: Bearer <token>
 
 {
-  "task_id": "123e4567-e89b-12d3-a456-426614174000"
+  "file_path": "uploads/xxx.pdf",
+  "template_id": 1,  // 可选
+  "llm_config_id": 1  // 可选
 }
 ```
- > **注意**：删除任务会同时删除 langflow 和本地相关的上传和输出文件
 
-#### 5. 下载文件
-
-```http
-GET /api/v1/task/download?task_id=123e4567-e89b-12d3-a456-426614174000
-```
-
-#### 6. 静态文件服务
+#### 提交澄清
 
 ```http
-GET /static/*filepath
+POST /api/v1/task/{task_id}/clarify
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "clarification": "用户的澄清回答"
+}
 ```
 
-## 使用流程
+#### 获取任务列表
 
-1. **上传需求文档**：通过 Web 界面或 API 上传 PDF/Word 文档
-2. **AI 解析**：Langflow 工作流自动解析文档内容
-3. **生成测试用例**：AI 根据需求生成结构化测试用例
-4. **下载结果**：下载生成的 Excel 格式测试用例文档
-
-## 开发指南
-
-### 代码架构
-
-项目采用清晰的分层架构：
-
-```
-请求 → API 层 → Service 层 → Repo 层 → 数据库
-         ↓         ↓           ↓
-       参数验证   业务逻辑    数据访问
-         ↓         ↓           ↓
-       DTO      Assemble     Model
+```http
+GET /api/v1/tasks?skip=0&limit=20
+Authorization: Bearer <token>
 ```
 
-### 添加新功能
+#### 获取任务总结
 
-1. 在 `internal/dto/` 定义请求响应结构
-2. 在 `internal/repo/models/` 定义数据模型
-3. 在 `internal/repo/` 实现数据访问接口
-4. 在 `internal/service/` 实现业务逻辑
-5. 在 `internal/assemble/` 添加转换函数
-6. 在 `internal/api/` 实现 HTTP 接口
-7. 在 `cmd/api/main.go` 注册路由
-
-### 数据库迁移
-
-SQLite 数据库会在首次启动时自动创建，使用 GORM 自动迁移：
-
-```go
-db.AutoMigrate(
-    &models.Task{},
-    // 添加新模型
-)
+```http
+GET /api/v1/task/{task_id}/summary
+Authorization: Bearer <token>
 ```
 
-### 日志使用
+#### 下载 Excel
 
-```go
-logger.Info("操作成功", zap.String("task_id", taskID))
-logger.Error("操作失败", zap.Error(err))
-logger.Debug("调试信息", zap.Any("data", obj))
+```http
+GET /api/v1/download/{task_id}
+Authorization: Bearer <token>
 ```
+
+#### 删除任务
+
+```http
+DELETE /api/v1/tasks/{task_id}
+Authorization: Bearer <token>
+```
+
+### 模板接口
+
+#### 获取模板列表
+
+```http
+GET /api/v1/templates
+Authorization: Bearer <token>
+```
+
+#### 创建模板
+
+```http
+POST /api/v1/templates
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "模板名称",
+  "content": "模板内容"
+}
+```
+
+## 🔄 工作流说明
+
+1. **文档上传** → Docling 解析为 Markdown + 提取图片/表格
+2. **需求分析** → LLM 分析是否有待澄清问题
+3. **人机澄清** → 如有问题，等待用户输入（interrupt）
+4. **用例生成** → LLM 生成测试用例
+5. **结果提取** → 从 Markdown 提取表格转 Excel + 总结保存 MD
+
+## 🎯 使用流程
+
+1. **注册/登录**：创建账号并登录系统
+2. **上传需求文档**：支持 PDF、DOCX、TXT、MD 格式
+3. **创建任务**：选择模板和 LLM 配置（可选）
+4. **等待处理**：系统自动解析文档并生成测试用例
+5. **澄清问题**：如有待澄清问题，系统会暂停等待用户输入
+6. **查看结果**：查看生成的测试用例总结
+7. **下载 Excel**：下载结构化的测试用例文档
+
+## 🔧 配置说明
+
+### 环境变量
+
+在 `backend/.env` 中配置：
+
+| 变量名 | 说明 | 示例 |
+|--------|------|------|
+| `OPENAI_API_KEY` | OpenAI API 密钥 | `sk-xxx...` |
+| `OPENAI_BASE_URL` | OpenAI API 地址 | `https://api.openai.com/v1` |
+| `OPENAI_MODEL` | 使用的模型 | `gpt-4o-mini` |
+| `DATABASE_URL` | 数据库连接 | `sqlite+aiosqlite:///./data/flow_test.db` |
+| `SECRET_KEY` | JWT 密钥 | `your-secret-key` |
 
 ### 修改 AI 提示词
 
-如需自定义测试用例生成逻辑，可以修改 `config/prompt.md` 文件：
+编辑 `backend/config/prompt.md` 文件可以自定义测试用例生成逻辑。
 
-> **重要提示**：修改提示词时，**必须保持 "3.3 测试用例输出格式" 部分的描述信息不变**，否则会影响用例模板的替换功能，导致生成的测试用例无法正确解析。
+> **重要提示**：修改提示词时，**必须保持输出格式部分不变**，否则会影响测试用例的解析。
 
-**可以修改的部分**：
-- 测试用例生成的策略和方法
-- 测试场景的覆盖范围
-- 测试用例的详细程度
-- 其他业务逻辑相关的描述
-
-**不可修改的部分**：
-- `3.3 测试用例输出格式` 章节的格式定义
-- 输出模板的结构
-- 表格列名和格式要求
-
-### 前端开发
-
-```bash
-cd frontend
-
-# 开发模式（热重载）
-npm run dev
-
-# 代码检查
-npm run lint
-
-# 生产构建
-npm run build
-
-# 预览构建结果
-npm run preview
-```
-
-## 常见问题
-
-### Docker 部署相关
+## 🐛 常见问题
 
 ### Q: Docker 容器启动失败？
 
 **A**: 检查以下几点：
 1. Docker 和 Docker Compose 版本是否满足要求
-2. 端口 8080 是否被占用：`lsof -i :8080` 或 `netstat -an | grep 8080`
-3. 环境变量配置是否正确
-4. 查看容器日志：`docker-compose logs -f`
+2. 端口 8080 是否被占用：`lsof -i :8080`
+3. 查看容器日志：`docker-compose logs -f`
 
-### Q: Docker 容器无法连接 Langflow？
-
-**A**:
-1. **网络问题**：确保容器能访问 Langflow 服务
-   - 如果 Langflow 在本机：使用 `host.docker.internal` 或宿主机 IP
-   - 如果 Langflow 在其他机器：确保网络互通
-2. **配置检查**：验证 `LANGFLOW_BASE_URL` 环境变量是否正确
-3. **测试连接**：进入容器测试：
-   ```bash
-   docker exec -it flow-test-engine sh
-   wget -O- http://your-langflow-host:7860/health
-   ```
-
-### Q: 如何查看 Docker 容器日志？
-
-**A**:
-```bash
-# 实时查看所有日志
-docker-compose logs -f
-
-# 查看最近 100 行日志
-docker-compose logs --tail=100
-
-# 只查看错误日志
-docker-compose logs | grep ERROR
-```
-
-### Q: 如何更新 Docker 镜像？
-
-**A**:
-```bash
-# 拉取最新镜像
-docker-compose pull
-
-# 重启服务
-docker-compose up -d
-
-# 清理旧镜像
-docker image prune -f
-```
-
-### Q: 如何备份 Docker 数据？
-
-**A**:
-```bash
-# 备份所有数据卷
-docker run --rm -v flow_test_engine_data:/data -v $(pwd):/backup alpine tar czf /backup/data-backup.tar.gz -C /data .
-docker run --rm -v flow_test_engine_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads-backup.tar.gz -C /data .
-docker run --rm -v flow_test_engine_outputs:/data -v $(pwd):/backup alpine tar czf /backup/outputs-backup.tar.gz -C /data .
-
-# 恢复数据卷
-docker run --rm -v flow_test_engine_data:/data -v $(pwd):/backup alpine tar xzf /backup/data-backup.tar.gz -C /data
-```
-
-### Q: 如何进入容器调试？
-
-**A**:
-```bash
-# 进入容器
-docker exec -it flow-test-engine sh
-
-# 查看配置文件
-cat /app/config/config.yaml
-
-# 查看日志
-tail -f /app/logs/flow.log
-
-# 检查文件权限
-ls -la /app/data /app/uploads /app/outputs
-```
-
-### 应用配置相关
-
-### Q: Langflow 工作流配置问题？
-
-**A**:
-1. **模型名称输入问题**：Langflow 没有自动获取模型列表的接口，需要手动输入模型名称。虽然前端显示可能有问题，但只要输入正确的模型名称，工作流可以正常运行。
-2. **组件 ID 获取**：点击工作流中的组件，在右侧设置面板可以看到组件 ID（通常格式为 `ComponentName-xxxxx`）
-3. **API Key 权限**：确保 Langflow API Key 有足够的权限执行工作流
-
-### Q: 服务启动失败？
-
-**A**: 检查以下几点：
-1. 端口 8080 是否被占用
-2. `config/config.yaml` 配置是否正确
-3. `data/` 目录是否有写入权限
-4. Langflow 服务是否已启动
-
-### Q: Langflow 连接失败？
-
-**A**: 请检查：
-1. Langflow 服务是否正常运行（访问 `http://localhost:7860` 验证）
-2. `base_url` 配置是否正确（注意不要包含尾部斜杠）
-3. `api_key` 是否有效（在 Langflow 设置中验证）
-4. `flow_id` 和各个组件 ID 是否正确
-5. 网络连接是否正常
-
-### Q: 文件上传失败？
-
-**A**: 可能原因：
-1. 文件大小超过限制（默认 50MB）
-2. `uploads/` 目录不存在或无写入权限
-3. 文件格式不支持
-4. Langflow 工作流中的 File 组件配置错误
-
-### Q: AI 生成测试用例失败？
+### Q: OpenAI API 调用失败？
 
 **A**: 检查：
-1. OpenAI API 配置是否正确（Base URL、API Key、Model）
-2. API Key 是否有足够的额度
-3. 模型名称是否正确（区分大小写）
-4. 网络是否能访问 LLM API
-5. 查看 Langflow 日志了解详细错误信息
+1. `OPENAI_API_KEY` 是否正确
+2. `OPENAI_BASE_URL` 是否正确（注意 `/v1` 后缀）
+3. API Key 是否有足够的额度
+4. 网络是否能访问 OpenAI API
+
+### Q: 文档解析失败？
+
+**A**: 可能原因：
+1. 文档格式不支持或损坏
+2. 文档内容过于复杂
+3. 查看后端日志了解详细错误信息
 
 ### Q: 如何查看日志？
 
+**Docker 部署**：
 ```bash
-# 实时查看日志
-tail -f logs/flow.log
+docker-compose logs -f
+```
 
-# 查看最近的错误
-grep "ERROR" logs/flow.log
+**本地开发**：
+```bash
+# 后端日志会输出到终端
+cd backend
+uv run uvicorn app.main:app --reload
 ```
 
 ### Q: 如何清理数据？
 
 ```bash
-# 删除数据库文件（会清空所有数据）
-rm data/flow_test.db
+# 删除数据库文件
+rm backend/data/flow_test.db
 
 # 清理上传和输出文件
-rm -rf uploads/* outputs/*
+rm -rf backend/uploads/* backend/outputs/*
 ```
 
 ## 🤝 贡献
@@ -700,4 +373,4 @@ MIT License
 
 ---
 
-**注意**：本项目需要配合 Langflow 服务使用，请确保已正确配置 Langflow 工作流。
+**注意**：本项目使用 LangGraph + Docling 实现 AI 工作流，无需额外配置 Langflow 服务。

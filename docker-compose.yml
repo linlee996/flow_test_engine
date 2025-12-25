@@ -1,35 +1,20 @@
 services:
   flow-test-engine:
-    # 使用 Docker Hub 上的镜像，而不是本地构建
-    image: linlee996/flow-test-engine:latest
+    # 使用本地构建的镜像
+    image: flow_test_engine:local
     container_name: flow-test-engine
     ports:
       - "8080:8080"
     volumes:
       # 数据持久化
-      - data:/app/data
-      - uploads:/app/uploads
-      - outputs:/app/outputs
-      - logs:/app/logs
-      # 配置文件（可选：如果不挂载，将使用镜像中的默认配置）
-      # - ./config/config.yaml:/app/config/config.yaml:ro
+      - ./flow_test_engine/data:/app/backend/data
+      - ./flow_test_engine/uploads:/app/backend/uploads
+      - ./flow_test_engine/outputs:/app/backend/outputs
+      - ./flow_test_engine/logs:/app/backend/logs
     environment:
       - TZ=Asia/Shanghai
-      # Langflow 配置（通过环境变量覆盖）
-      - LANGFLOW_BASE_URL=http://localhost:7860
-      - LANGFLOW_API_KEY=your-langflow-api-key
-      - LANGFLOW_FLOW_ID=flow-id
-      - LANGFLOW_FILE_COMPONENT_ID=File-XXXX
-      - LANGFLOW_SAVE_FILE_COMPONENT_ID=SaveToFile-XXXX
-      - LANGFLOW_PROMPT_COMPONENT_ID=Prompt-XXXX
+      # Docker 卷挂载目录
+      - DATABASE_URL=sqlite+aiosqlite:////app/backend/data/flow_test.db
+      - UPLOAD_DIR=/app/backend/uploads
+      - OUTPUT_DIR=/app/backend/outputs
     restart: unless-stopped
-
-volumes:
-  data:
-    driver: local
-  uploads:
-    driver: local
-  outputs:
-    driver: local
-  logs:
-    driver: local
