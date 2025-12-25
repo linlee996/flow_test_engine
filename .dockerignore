@@ -47,3 +47,12 @@ data/
 
 # Python 虚拟环境
 backend/.venv
+backend/__pycache__
+backend/**/__pycache__
+backend/*.pyc
+backend/**/*.pyc
+backend/*.pyo
+backend/**/*.pyo
+backend/.pytest_cache
+backend/.ruff_cache
+backend/.mypy_cache

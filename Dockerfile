@@ -33,13 +33,19 @@ COPY backend/pyproject.toml backend/uv.lock* backend/README.md ./
 # 安装依赖到 .venv
 RUN uv sync --no-dev
 
+# 清理 uv 缓存和不必要的文件，减小镜像体积
+RUN uv cache clean && \
+    find .venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find .venv -type f -name "*.pyc" -delete && \
+    find .venv -type f -name "*.pyo" -delete
+
 # 复制应用代码
 COPY backend/ ./
 
 # 阶段3: 最终运行镜像
 FROM python:3.13-slim
 
-# 安装运行时系统依赖 - OpenCV 和 OCR 需要的库
+# 安装运行时系统依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
