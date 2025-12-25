@@ -11,8 +11,9 @@ RUN npm run build
 # 阶段2: 构建 Python 环境
 FROM python:3.13-slim AS backend-builder
 
-# 安装系统依赖 - OpenCV 和 OCR 需要的库
+# 安装系统依赖 - OpenCV 和 OCR 需要的库 + 构建工具
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ make \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -30,7 +31,7 @@ WORKDIR /app/backend
 COPY backend/pyproject.toml backend/uv.lock* backend/README.md ./
 
 # 安装依赖到 .venv
-RUN uv sync --frozen --no-dev
+RUN uv sync --no-dev
 
 # 复制应用代码
 COPY backend/ ./
