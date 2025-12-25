@@ -1,7 +1,7 @@
 services:
   flow-test-engine:
     # 使用本地构建的镜像
-    image: flow_test_engine:local
+    image: ghcr.io/linlee996/flow_test_engine:latest
     container_name: flow-test-engine
     ports:
       - "8080:8080"
