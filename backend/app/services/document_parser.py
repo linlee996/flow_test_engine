@@ -3,8 +3,9 @@ import base64
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
-from docling.document_converter import DocumentConverter
-from docling_core.types.doc import ImageRefMode
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.base_models import InputFormat
 
 
 @dataclass
@@ -16,21 +17,35 @@ class ParsedDocument:
 
 
 class DocumentParser:
-    """Docling 文档解析器"""
+    """Docling 文档解析器 - 支持轻量/高级解析两种模式"""
 
     def __init__(self):
-        self.converter = DocumentConverter()
+        # 轻量级转换器：禁用 OCR 和表格结构识别，速度快、资源省
+        light_pipeline = PdfPipelineOptions()
+        light_pipeline.do_ocr = False
+        light_pipeline.do_table_structure = False
+        
+        self._light_converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(pipeline_options=light_pipeline)
+            }
+        )
+        
+        # 高级转换器：启用完整的 OCR 和表格识别功能
+        self._advanced_converter = DocumentConverter()
 
-    def parse(self, file_path: str, advanced_parsing: bool = True) -> ParsedDocument:
+    def parse(self, file_path: str, advanced_parsing: bool = False) -> ParsedDocument:
         """
         解析文档，提取 markdown 内容和多模态元素
         支持 PDF、DOCX、DOC、TXT 等格式
         
         Args:
             file_path: 文档路径
-            advanced_parsing: 是否启用高级解析（OCR 识别图片/表格），默认 True
+            advanced_parsing: 是否启用高级解析（OCR 识别图片/表格），默认 False
         """
-        result = self.converter.convert(file_path)
+        # 根据解析模式选择转换器
+        converter = self._advanced_converter if advanced_parsing else self._light_converter
+        result = converter.convert(file_path)
         doc = result.document
 
         # 导出为 markdown
