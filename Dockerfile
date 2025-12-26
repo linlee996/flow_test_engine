@@ -29,14 +29,18 @@ WORKDIR /app/backend
 # 复制依赖文件
 COPY backend/pyproject.toml backend/uv.lock* backend/README.md ./
 
-# 安装依赖到 .venv
-RUN uv sync --no-dev
-
-# 清理 uv 缓存和不必要的文件，减小镜像体积
-RUN uv cache clean && \
+# 安装依赖并彻底清理，减小镜像体积
+RUN uv sync --no-dev && \
+    uv cache clean && \
     find .venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find .venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find .venv -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
+    find .venv -type d -name "*.dist-info" -exec rm -rf {}/licenses {} + 2>/dev/null || true && \
     find .venv -type f -name "*.pyc" -delete && \
-    find .venv -type f -name "*.pyo" -delete
+    find .venv -type f -name "*.pyo" -delete && \
+    find .venv -type f -name "*.pyd" -delete && \
+    find .venv -type f -name "*.so" -exec strip --strip-debug {} + 2>/dev/null || true && \
+    rm -rf .venv/lib/python*/site-packages/pip 2>/dev/null || true
 
 # 复制应用代码
 COPY backend/ ./
