@@ -29,26 +29,16 @@ WORKDIR /app/backend
 # 复制依赖文件
 COPY backend/pyproject.toml backend/uv.lock* backend/README.md ./
 
-# 先安装 PyTorch CPU-only 版本，再安装其他依赖
-RUN uv venv && \
-    . .venv/bin/activate && \
-    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --no-cache-dir && \
-    uv sync --no-dev && \
+# 安装依赖并清理缓存减小镜像体积
+RUN uv sync --no-dev && \
     uv cache clean && \
-    # 清理 __pycache__ 和测试文件
     find .venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
     find .venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
     find .venv -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
+    find .venv -type d -name "*.dist-info" -exec rm -rf {}/licenses {} + 2>/dev/null || true && \
     find .venv -type f -name "*.pyc" -delete && \
     find .venv -type f -name "*.pyo" -delete && \
-    # 清理 PyTorch 测试和不需要的文件
-    rm -rf .venv/lib/python*/site-packages/torch/test 2>/dev/null || true && \
-    rm -rf .venv/lib/python*/site-packages/torch/include 2>/dev/null || true && \
-    rm -rf .venv/lib/python*/site-packages/torch/_inductor 2>/dev/null || true && \
-    rm -rf .venv/lib/python*/site-packages/caffe2 2>/dev/null || true && \
-    # 清理静态库文件
-    find .venv -name "*.a" -delete 2>/dev/null || true && \
-    # strip 调试符号
+    find .venv -type f -name "*.pyd" -delete && \
     find .venv -type f -name "*.so" -exec strip --strip-debug {} + 2>/dev/null || true && \
     rm -rf .venv/lib/python*/site-packages/pip 2>/dev/null || true
 
