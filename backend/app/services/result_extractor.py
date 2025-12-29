@@ -66,6 +66,46 @@ class ResultExtractor:
 
         return str(excel_path)
 
+    def _clean_cell_content(self, content: str) -> str:
+        """清理单元格内容中的 HTML 标签和实体，转换为 Excel 友好格式"""
+        if not content:
+            return content
+
+        # 将 <br>、<br/>、<br /> 转换为换行符
+        result = re.sub(r'<br\s*/?>', '\n', content, flags=re.IGNORECASE)
+
+        # 处理常见的 HTML 实体
+        html_entities = {
+            '&nbsp;': ' ',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&amp;': '&',
+            '&quot;': '"',
+            '&apos;': "'",
+            '&#39;': "'",
+            '&mdash;': '—',
+            '&ndash;': '–',
+            '&hellip;': '…',
+            '&copy;': '©',
+            '&reg;': '®',
+            '&trade;': '™',
+        }
+        for entity, char in html_entities.items():
+            result = result.replace(entity, char)
+
+        # 处理数字型 HTML 实体，如 &#160; &#x20; 等
+        result = re.sub(r'&#(\d+);', lambda m: chr(int(m.group(1))), result)
+        result = re.sub(r'&#x([0-9a-fA-F]+);', lambda m: chr(int(m.group(1), 16)), result)
+
+        # 移除其他残留的 HTML 标签（如 <p>、<span> 等）
+        result = re.sub(r'<[^>]+>', '', result)
+
+        # 清理多余的空白字符（但保留换行符）
+        result = re.sub(r'[ \t]+', ' ', result)  # 多个空格/制表符合并为一个空格
+        result = re.sub(r'\n{3,}', '\n\n', result)  # 多个换行符合并为两个
+
+        return result.strip()
+
     def _parse_markdown_table(self, table_str: str) -> pd.DataFrame:
         """解析 markdown 表格为 DataFrame"""
         lines = [line.strip() for line in table_str.strip().split('\n') if line.strip()]
@@ -75,12 +115,12 @@ class ResultExtractor:
 
         # 解析表头
         header_line = lines[0]
-        headers = [cell.strip() for cell in header_line.split('|') if cell.strip()]
+        headers = [self._clean_cell_content(cell.strip()) for cell in header_line.split('|') if cell.strip()]
 
         # 跳过分隔行，解析数据行
         data_rows = []
         for line in lines[2:]:  # 跳过表头和分隔行
-            cells = [cell.strip() for cell in line.split('|') if cell.strip()]
+            cells = [self._clean_cell_content(cell.strip()) for cell in line.split('|') if cell.strip()]
             if cells:
                 # 确保列数匹配
                 while len(cells) < len(headers):
