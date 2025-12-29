@@ -11,6 +11,25 @@
 - 📊 **Excel 导出**：自动生成结构化的测试用例 Excel 文档
 - 💾 **轻量存储**：使用 SQLite 数据库，无需额外安装
 
+## 功能介绍
+
+### 多家 LLM 供应商支持
+OpenAI 厂商支持符合 OpenAI API 规范的模型接入。
+![llm_providers.png](assets/llm_providers.png)
+### 用例输出模板自定义
+支持自定义测试用例生成模板，满足不同测试管理平台的用例导入要求。
+![template_customization.png](assets/template_customization.png)
+### 文档解析
+提供了轻量级和精细的文档解析模式，满足不同需求。
+- 开启高级解析模式可以提取图片和表格，适合复杂文档。
+- 关闭高级解析模式则快速提取文本，适合简单文档。
+![doc_parsing.png](assets/doc_parsing.png)
+### Human-in-the-Loop 澄清交互
+在生成测试用例过程中，如遇到不明确的需求，系统会暂停并提示
+![hitl_clarification.png](assets/hitl_clarification.png)
+### AIGC 总结
+![aigc_summary.png](assets/aigc_summary.png)
+
 ## 🛠 技术栈
 
 ### 后端
@@ -18,7 +37,7 @@
 - **框架**：FastAPI
 - **AI 工作流**：LangGraph + LangChain
 - **文档解析**：Docling
-- **数据库**：SQLite (SQLAlchemy)
+- **数据库**：SQLite
 - **包管理**：uv
 
 ### 前端
@@ -74,19 +93,11 @@ flow_test_engine/
 1. **创建部署目录并下载配置文件**
 
 ```bash
-mkdir flow_test_engine && cd flow_test_engine
-
 # 下载 docker-compose.yml
 curl -O https://raw.githubusercontent.com/linlee996/flow_test_engine/main/docker-compose.yml
 ```
 
-2. **创建数据目录**
-
-```bash
-mkdir -p data uploads outputs logs
-```
-
-3. **启动服务**
+2. **启动服务**
 
 ```bash
 # 拉取镜像并启动
@@ -99,9 +110,10 @@ docker-compose logs -f
 docker-compose down
 ```
 
-4. **访问应用**
+3. **访问应用**
 
 打开浏览器访问 `http://localhost:8080`
+默认管理员账密：admin/admin
 
 > **注意**：镜像托管在 GitHub Container Registry (ghcr.io)，首次拉取可能需要一些时间
 
@@ -126,7 +138,7 @@ uv sync
 
 # 配置环境变量
 cp .env.example .env
-# 编辑 .env 文件，填入 OpenAI API Key
+# 编辑 .env 文件
 
 # 启动服务
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
@@ -296,9 +308,6 @@ Authorization: Bearer <token>
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
-| `OPENAI_API_KEY` | OpenAI API 密钥 | `sk-xxx...` |
-| `OPENAI_BASE_URL` | OpenAI API 地址 | `https://api.openai.com/v1` |
-| `OPENAI_MODEL` | 使用的模型 | `gpt-4o-mini` |
 | `DATABASE_URL` | 数据库连接 | `sqlite+aiosqlite:///./data/flow_test.db` |
 | `SECRET_KEY` | JWT 密钥 | `your-secret-key` |
 
@@ -316,14 +325,6 @@ Authorization: Bearer <token>
 1. Docker 和 Docker Compose 版本是否满足要求
 2. 端口 8080 是否被占用：`lsof -i :8080`
 3. 查看容器日志：`docker-compose logs -f`
-
-### Q: OpenAI API 调用失败？
-
-**A**: 检查：
-1. `OPENAI_API_KEY` 是否正确
-2. `OPENAI_BASE_URL` 是否正确（注意 `/v1` 后缀）
-3. API Key 是否有足够的额度
-4. 网络是否能访问 OpenAI API
 
 ### Q: 文档解析失败？
 
@@ -372,5 +373,3 @@ MIT License
 - 发送邮件至项目维护者
 
 ---
-
-**注意**：本项目使用 LangGraph + Docling 实现 AI 工作流，无需额外配置 Langflow 服务。
