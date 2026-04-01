@@ -16,6 +16,7 @@ export interface Task {
     error_message?: string;
     clarification_message?: string;
     summary_content?: string;
+    current_step?: string;
 }
 
 export interface TaskListResponse {
@@ -59,4 +60,45 @@ export interface ProviderInfo {
     provider: string;
     base_url: string;
     models: string[];
+}
+
+// 知识库相关
+export interface Project {
+    id: number;
+    name: string;
+    description?: string;
+    embedding_provider: string;
+    embedding_model: string;
+    doc_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ProjectListResponse {
+    total: number;
+    projects: Project[];
+}
+
+export interface KnowledgeDocument {
+    id: number;
+    project_id: number;
+    original_filename: string;
+    file_size: number;
+    chunk_count: number;
+    status: 'processing' | 'ready' | 'failed';
+    error_message?: string;
+    created_at: string;
+}
+
+export interface EmbeddingProviderInfo {
+    provider: string;
+    name: string;
+    default_model: string;
+    is_configured: boolean;
+}
+
+export interface KnowledgeSearchResult {
+    content: string;
+    metadata: Record<string, unknown>;
+    distance: number;
 }

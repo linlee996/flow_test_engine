@@ -1,7 +1,7 @@
 [project]
 name = "flow-test-engine"
 version = "0.1.0"
-description = "智能测试用例生成引擎 - LangGraph + Docling 驱动"
+description = "智能测试用例生成引擎 - LangGraph + PyMuPDF 驱动"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -12,7 +12,6 @@ dependencies = [
     "aiosqlite>=0.20.0",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
-    "docling>=2.15.0",
     "langgraph>=0.2.0",
     "langgraph-checkpoint>=2.0.0",
     "langchain>=0.3.0",
@@ -24,6 +23,10 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
     "greenlet>=3.3.0",
+    "chromadb>=0.5.0",
+    "langchain-text-splitters>=0.3.0",
+    "pymupdf>=1.24.0",
+    "python-docx>=1.1.0",
 ]
 
 [build-system]

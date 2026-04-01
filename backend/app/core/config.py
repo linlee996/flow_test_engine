@@ -30,9 +30,15 @@ class Settings(BaseSettings):
     output_dir: str = str(_BACKEND_DIR / "outputs")
     max_file_size: int = 52428800  # 50MB
 
+    # ChromaDB 配置
+    chroma_dir: str = str(_BACKEND_DIR / "data" / "chroma")
+
     # 内置管理员账号
     admin_username: str = "admin"
     admin_password: str = "admin"
+
+    # 演示模式
+    demo_mode: bool = False
 
     class Config:
         env_file = ".env"

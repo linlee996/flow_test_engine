@@ -12,6 +12,7 @@ _db_path = settings.database_url.replace("sqlite+aiosqlite:///", "")
 Path(_db_path).parent.mkdir(parents=True, exist_ok=True)
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 Path(settings.output_dir).mkdir(parents=True, exist_ok=True)
+Path(settings.chroma_dir).mkdir(parents=True, exist_ok=True)
 
 engine = create_async_engine(
     settings.database_url,

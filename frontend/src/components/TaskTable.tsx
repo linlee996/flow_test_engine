@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Trash2, FileText, MessageSquare, FileCheck } from 'lucide-react';
+import { Download, Trash2, FileText, MessageSquare, FileCheck, Activity, StopCircle } from 'lucide-react';
 import { type Task, TaskStatus, taskService } from '../services/api';
 import { Button } from './ui/Button';
 import { StatusBadge } from './ui/StatusBadge';
@@ -8,6 +8,7 @@ import { Card } from './ui/Card';
 import { Tooltip } from './ui/Tooltip';
 import { ClarificationModal } from './ClarificationModal';
 import { SummaryModal } from './SummaryModal';
+import { WorkflowProgressModal } from './WorkflowProgressModal';
 import styles from './TaskTable.module.css';
 
 interface TaskTableProps {
@@ -20,12 +21,38 @@ interface TaskTableProps {
 export const TaskTable: React.FC<TaskTableProps> = ({ tasks, isLoading, onDelete, onRefresh }) => {
     const [clarifyTask, setClarifyTask] = useState<Task | null>(null);
     const [summaryTask, setSummaryTask] = useState<Task | null>(null);
+    const [progressTask, setProgressTask] = useState<Task | null>(null);
     const [downloadingTaskId, setDownloadingTaskId] = useState<number | null>(null);
+    // stop 按钮：请求发出后持续 loading，直到轮询发现状态不再是 RUNNING/CLARIFYING
+    const [stoppingTaskId, setStoppingTaskId] = useState<number | null>(null);
+
+    // 轮询刷新了 tasks 后，如果被停止的任务状态已变，自动清除 loading
+    React.useEffect(() => {
+        if (stoppingTaskId === null) return;
+        const t = tasks.find((t) => t.task_id === stoppingTaskId);
+        if (!t || (t.status !== TaskStatus.RUNNING && t.status !== TaskStatus.CLARIFYING)) {
+            setStoppingTaskId(null);
+        }
+    }, [tasks, stoppingTaskId]);
 
     const handleClarifySubmit = async (taskId: number, input: string) => {
         await taskService.clarifyTask(taskId, input);
         setClarifyTask(null);
         onRefresh();
+    };
+
+    const handleStopTask = async (taskId: number) => {
+        if (stoppingTaskId !== null) return; // prevent double click
+        try {
+            setStoppingTaskId(taskId);
+            await taskService.stopTask(taskId);
+            onRefresh();
+            // NOTE: do NOT clear stoppingTaskId here.
+            // It stays loading until the polling detects status change (useEffect above).
+        } catch (err) {
+            console.error('Stop task failed', err);
+            setStoppingTaskId(null);
+        }
     };
 
     const handleDownload = async (task: Task) => {
@@ -118,16 +145,51 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, isLoading, onDelete
                                             </td>
                                             <td>
                                                 <div className={styles.actions}>
-                                                    {/* 澄清按钮 */}
+                                                    {/* 运行中：查看进度 + 停止按钮 */}
+                                                    {task.status === TaskStatus.RUNNING && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                icon={<Activity size={14} />}
+                                                                onClick={() => setProgressTask(task)}
+                                                                disabled={stoppingTaskId === task.task_id}
+                                                            >
+                                                                查看进度
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="danger"
+                                                                icon={<StopCircle size={14} />}
+                                                                onClick={() => handleStopTask(task.task_id)}
+                                                                isLoading={stoppingTaskId === task.task_id}
+                                                            >
+                                                                {stoppingTaskId === task.task_id ? '停止中' : '停止'}
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {/* 澄清按钮 + 停止按钮 */}
                                                     {task.status === TaskStatus.CLARIFYING && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="secondary"
-                                                            icon={<MessageSquare size={14} />}
-                                                            onClick={() => setClarifyTask(task)}
-                                                        >
-                                                            Clarify
-                                                        </Button>
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                icon={<MessageSquare size={14} />}
+                                                                onClick={() => setClarifyTask(task)}
+                                                                disabled={stoppingTaskId === task.task_id}
+                                                            >
+                                                                Clarify
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="danger"
+                                                                icon={<StopCircle size={14} />}
+                                                                onClick={() => handleStopTask(task.task_id)}
+                                                                isLoading={stoppingTaskId === task.task_id}
+                                                            >
+                                                                {stoppingTaskId === task.task_id ? '停止中' : '停止'}
+                                                            </Button>
+                                                        </>
                                                     )}
                                                     {/* 完成状态：下载和查看总结 */}
                                                     {task.status === TaskStatus.FINISHED && (
@@ -151,14 +213,17 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, isLoading, onDelete
                                                             </Button>
                                                         </>
                                                     )}
-                                                    <Button
-                                                        size="sm"
-                                                        variant="danger"
-                                                        icon={<Trash2 size={14} />}
-                                                        onClick={() => onDelete(task.task_id, task.original_filename)}
-                                                    >
-                                                        删除
-                                                    </Button>
+                                                    {/* 非运行中/非澄清中才显示删除按钮 */}
+                                                    {task.status !== TaskStatus.RUNNING && task.status !== TaskStatus.CLARIFYING && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="danger"
+                                                            icon={<Trash2 size={14} />}
+                                                            onClick={() => onDelete(task.task_id, task.original_filename)}
+                                                        >
+                                                            删除
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </motion.tr>
@@ -214,6 +279,15 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, isLoading, onDelete
                     isOpen={!!summaryTask}
                     task={summaryTask}
                     onClose={() => setSummaryTask(null)}
+                />
+            )}
+
+            {/* 工作流进度模态框 - use latest task data from props */}
+            {progressTask && (
+                <WorkflowProgressModal
+                    isOpen={!!progressTask}
+                    task={tasks.find((t) => t.task_id === progressTask.task_id) || progressTask}
+                    onClose={() => setProgressTask(null)}
                 />
             )}
         </>

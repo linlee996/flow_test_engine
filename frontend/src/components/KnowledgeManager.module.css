@@ -1,0 +1,286 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    min-height: 500px;
+}
+
+/* 左侧项目列表 */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.projectCard {
+    padding: 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.projectCard:hover {
+    border-color: var(--color-primary);
+    background: rgba(96, 165, 250, 0.05);
+}
+
+.projectCard.active {
+    border-color: var(--color-primary);
+    background: rgba(96, 165, 250, 0.1);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.projectName {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.projectMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.docCount {
+    background: rgba(96, 165, 250, 0.15);
+    color: var(--color-primary);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* 右侧详情 */
+.detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.detailHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.detailTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.detailDesc {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.detailInfo {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(96, 165, 250, 0.05);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+.infoItem {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.infoLabel {
+    opacity: 0.7;
+}
+
+.infoValue {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* 文档列表 */
+.docSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.docHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.docHeader h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.docList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.docItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+}
+
+.docItem:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.docInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.docIcon {
+    flex-shrink: 0;
+    color: var(--color-primary);
+}
+
+.docName {
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.docMeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.docSize {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.docChunks {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.statusReady {
+    color: #4ade80;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.statusProcessing {
+    color: #fbbf24;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.statusFailed {
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.deleteBtn {
+    padding: 0.4rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* 空状态 */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+    gap: 0.75rem;
+}
+
+.emptyState p {
+    font-size: 0.9rem;
+}
+
+/* 上传区域 */
+.uploadArea {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.uploadLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px dashed var(--color-primary);
+    border-radius: var(--radius-sm);
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.uploadLabel:hover {
+    background: rgba(96, 165, 250, 0.2);
+}
+
+/* 操作按钮组 */
+.detailActions {
+    display: flex;
+    gap: 0.5rem;
+}

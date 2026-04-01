@@ -1,7 +1,7 @@
 """任务相关 Schema"""
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 
 class TokenResponse(BaseModel):
@@ -18,8 +18,8 @@ class TaskCreate(BaseModel):
     # 使用 provider + model
     provider: str
     model: str
-    # 高级文档解析（启用 OCR 识别图片/表格，耗时较长）
-    advanced_parsing: bool = False
+    # 关联知识库项目（可选，启用 RAG 检索）
+    project_id: Optional[int] = None
 
 
 
@@ -37,6 +37,7 @@ class TaskResponse(BaseModel):
     error_message: Optional[str] = None
     clarification_message: Optional[str] = None
     summary_content: Optional[str] = None
+    current_step: Optional[str] = None  # current workflow step (only when running)
 
     class Config:
         from_attributes = True

@@ -16,19 +16,40 @@ class ResultExtractor:
         self.output_dir = Path(settings.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def extract_and_save(self, report_markdown: str, task_id: int, filename: str) -> tuple[str, str, str]:
+    def extract_and_save(
+        self,
+        report_markdown: str,
+        task_id: int,
+        filename: str,
+        cases_markdown: str = "",
+        summary_text: str = "",
+    ) -> tuple[str, str, str]:
         """
-        从 markdown 报告中提取表格和总结
-        返回: (excel_path, summary_path, full_markdown_path)
+        提取结果并保存文件。
+        支持分阶段输出（推荐）和全量正则提取（兜底）两种模式。
+
+        Args:
+            report_markdown: 完整报告（各阶段拼接，保存为 full_output.md）
+            task_id: 任务 ID
+            filename: 下载文件名
+            cases_markdown: Phase3 原始输出（从中提取 Excel 表格，为空则从 report_markdown 正则提取）
+            summary_text: Phase4 原始输出（直接存为总结，为空则从 report_markdown 正则提取）
+
+        Returns:
+            (excel_path, summary_path, full_markdown_path)
         """
         # 保存完整的 Agent 输出
         full_markdown_path = self._save_full_markdown(report_markdown, task_id)
 
-        # 提取最后一个 markdown 表格
-        excel_path = self._extract_table_to_excel(report_markdown, task_id, filename)
+        # 提取 Excel 表格：优先从 Phase3 原始输出中提取
+        source_for_table = cases_markdown if cases_markdown else report_markdown
+        excel_path = self._extract_table_to_excel(source_for_table, task_id, filename)
 
-        # 提取总结内容
-        summary_path = self._extract_summary(report_markdown, task_id)
+        # 保存总结：优先直接使用 Phase4 原始输出
+        if summary_text:
+            summary_path = self._save_summary_directly(summary_text, task_id)
+        else:
+            summary_path = self._extract_summary(report_markdown, task_id)
 
         return excel_path, summary_path, full_markdown_path
 
@@ -71,10 +92,9 @@ class ResultExtractor:
         if not content:
             return content
 
-        # 将 <br>、<br/>、<br /> 转换为换行符
-        result = re.sub(r'<br\s*/?>', '\n', content, flags=re.IGNORECASE)
+        result = content
 
-        # 处理常见的 HTML 实体
+        # 第一步：先处理 HTML 实体（因为可能存在 &lt;br&gt; 这种编码形式）
         html_entities = {
             '&nbsp;': ' ',
             '&lt;': '<',
@@ -97,10 +117,14 @@ class ResultExtractor:
         result = re.sub(r'&#(\d+);', lambda m: chr(int(m.group(1))), result)
         result = re.sub(r'&#x([0-9a-fA-F]+);', lambda m: chr(int(m.group(1), 16)), result)
 
-        # 移除其他残留的 HTML 标签（如 <p>、<span> 等）
+        # 第二步：将 <br>、<br/>、<br /> 及带属性的 <br> 标签转换为换行符
+        # 必须在 HTML 实体解码之后执行，否则 &lt;br&gt; 无法被匹配
+        result = re.sub(r'<br[^>]*/?>', '\n', result, flags=re.IGNORECASE)
+
+        # 第三步：移除其他残留的 HTML 标签（如 <p>、<span> 等）
         result = re.sub(r'<[^>]+>', '', result)
 
-        # 清理多余的空白字符（但保留换行符）
+        # 第四步：清理多余的空白字符（但保留换行符）
         result = re.sub(r'[ \t]+', ' ', result)  # 多个空格/制表符合并为一个空格
         result = re.sub(r'\n{3,}', '\n\n', result)  # 多个换行符合并为两个
 
@@ -113,15 +137,17 @@ class ResultExtractor:
         if len(lines) < 2:
             raise ValueError("表格格式不正确")
 
-        # 解析表头
+        # 解析表头 —— strip 首尾管道符后 split，保留空单元格
         header_line = lines[0]
-        headers = [self._clean_cell_content(cell.strip()) for cell in header_line.split('|') if cell.strip()]
+        raw_headers = header_line.strip().strip('|').split('|')
+        headers = [self._clean_cell_content(cell.strip()) for cell in raw_headers]
 
-        # 跳过分隔行，解析数据行
+        # 跳过分隔行，解析数据行（同样保留空单元格，不做 filter）
         data_rows = []
         for line in lines[2:]:  # 跳过表头和分隔行
-            cells = [self._clean_cell_content(cell.strip()) for cell in line.split('|') if cell.strip()]
-            if cells:
+            raw_cells = line.strip().strip('|').split('|')
+            cells = [self._clean_cell_content(cell.strip()) for cell in raw_cells]
+            if any(c for c in cells):  # 至少有一个非空单元格才算有效行
                 # 确保列数匹配
                 while len(cells) < len(headers):
                     cells.append("")
@@ -129,8 +155,18 @@ class ResultExtractor:
 
         return pd.DataFrame(data_rows, columns=headers)
 
+    def _save_summary_directly(self, summary_text: str, task_id: int) -> str:
+        """直接保存 Phase4 原始输出为总结文件（不做正则提取）"""
+        summary_filename = f"{task_id}_summary.md"
+        summary_path = self.output_dir / summary_filename
+
+        with open(summary_path, "w", encoding="utf-8") as f:
+            f.write(summary_text)
+
+        return str(summary_path)
+
     def _extract_summary(self, markdown: str, task_id: int) -> str:
-        """提取总结内容并保存为 md 文件"""
+        """提取总结内容并保存为 md 文件（正则兜底方案）"""
         summary_content = ""
 
         # 匹配"测试覆盖度总结"标题及其后的所有内容（不限标题级别）

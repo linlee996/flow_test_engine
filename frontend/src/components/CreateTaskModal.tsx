@@ -4,7 +4,7 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { Select } from './ui/Select';
 import { GroupedSelect } from './ui/GroupedSelect';
-import { taskService, templateService, type Template } from '../services/api';
+import { taskService, templateService, knowledgeService, type Template, type Project } from '../services/api';
 import styles from './CreateTaskModal.module.css';
 
 // API 服务
@@ -51,7 +51,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const [selectedModel, setSelectedModel] = useState<string>(''); // 格式: "provider:model"
     const [templates, setTemplates] = useState<Template[]>([]);
     const [modelGroups, setModelGroups] = useState<ModelGroup[]>([]);
-    const [advancedParsing, setAdvancedParsing] = useState(false);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -62,7 +63,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             setFilename('');
             setTemplateId('');
             setSelectedModel('');
-            setAdvancedParsing(false);
+            setSelectedProjectId('');
             setError('');
         }
     }, [isOpen]);
@@ -71,12 +72,14 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
     const loadData = async () => {
         try {
-            const [templatesData, groupsData] = await Promise.all([
+            const [templatesData, groupsData, projectsData] = await Promise.all([
                 templateService.getTemplates(),
                 api.fetch('/llm-configs/model-groups'),
+                knowledgeService.getProjects(),
             ]);
             setTemplates(templatesData);
             setModelGroups(groupsData);
+            setProjects(projectsData.projects || []);
 
             // 尝试恢复上次选择的模型
             const lastSelected = localStorage.getItem(LAST_SELECTED_MODEL_KEY);
@@ -150,7 +153,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 template_id: templateId ? parseInt(templateId) : null,
                 provider: provider,
                 model: model,
-                advanced_parsing: advancedParsing,
+                project_id: selectedProjectId ? parseInt(selectedProjectId) : null,
             });
 
             onSuccess();
@@ -247,17 +250,21 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 </div>
 
                 <div className={styles.field}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                        <input
-                            type="checkbox"
-                            checked={advancedParsing}
-                            onChange={(e) => setAdvancedParsing(e.target.checked)}
-                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                        />
-                        高级文档解析
-                    </label>
+                    <label>关联知识库</label>
+                    <Select
+                        value={selectedProjectId}
+                        onChange={setSelectedProjectId}
+                        options={[
+                            { value: '', label: '不关联' },
+                            ...projects.filter(p => p.doc_count > 0).map((p) => ({
+                                value: p.id.toString(),
+                                label: `${p.name} (${p.doc_count} 个文档)`,
+                            })),
+                        ]}
+                        placeholder="选择知识库项目"
+                    />
                     <small style={{ color: 'var(--color-text-muted)' }}>
-                        使用高级文档解析会识别文档图片、表格数据，耗时较长。
+                        关联知识库后，生成时会自动检索项目文档补充上下文，减少幻觉。
                     </small>
                 </div>
 

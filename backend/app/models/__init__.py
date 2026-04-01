@@ -5,11 +5,13 @@ from app.models.llm_config import (
     LLMProvider, PROVIDER_DEFAULTS, PROVIDER_ORDER,
     ProviderConfig, ProviderModel
 )
+from app.models.knowledge import Project, KnowledgeDocument
 
 __all__ = [
     "Task", "TaskStatus", "CaseTemplate",
     "LLMProvider", "PROVIDER_DEFAULTS", "PROVIDER_ORDER",
-    "ProviderConfig", "ProviderModel"
+    "ProviderConfig", "ProviderModel",
+    "Project", "KnowledgeDocument",
 ]
 
 

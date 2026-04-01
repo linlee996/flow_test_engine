@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { TaskTable } from './components/TaskTable';
 import { TemplateManager } from './components/TemplateManager';
 import { LLMConfigManager } from './components/LLMConfigManager';
+import { KnowledgeManager } from './components/KnowledgeManager';
 import { CreateTaskModal } from './components/CreateTaskModal';
 import { ParticleBackground } from './components/ui/ParticleBackground';
 import { Button } from './components/ui/Button';
@@ -15,7 +16,7 @@ import { ChevronLeft, ChevronRight, RotateCw } from 'lucide-react';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
-  const [activeTab, setActiveTab] = useState<'tasks' | 'templates' | 'llm'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'templates' | 'llm' | 'knowledge'>('tasks');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTask, setDeleteTask] = useState<{ id: number; filename: string } | null>(null);
 
@@ -178,6 +179,18 @@ function App() {
             transition={{ duration: 0.2 }}
           >
             <LLMConfigManager />
+          </motion.div>
+        );
+      case 'knowledge':
+        return (
+          <motion.div
+            key="knowledge"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <KnowledgeManager />
           </motion.div>
         );
     }

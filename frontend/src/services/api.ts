@@ -30,7 +30,12 @@ import type {
     Task,
     TaskListResponse,
     Template,
-    UploadResponse
+    UploadResponse,
+    Project,
+    ProjectListResponse,
+    KnowledgeDocument,
+    EmbeddingProviderInfo,
+    KnowledgeSearchResult,
 } from './types';
 
 export const taskService = {
@@ -48,7 +53,7 @@ export const taskService = {
         template_id?: number | null;
         provider: string;
         model: string;
-        advanced_parsing?: boolean;
+        project_id?: number | null;
     }): Promise<Task> => {
         const response = await api.post<Task>('/task/create', data);
         return response.data;
@@ -68,6 +73,11 @@ export const taskService = {
 
     deleteTask: async (taskId: number) => {
         const response = await api.delete(`/tasks/${taskId}`);
+        return response.data;
+    },
+
+    stopTask: async (taskId: number): Promise<Task> => {
+        const response = await api.post<Task>(`/task/${taskId}/stop`);
         return response.data;
     },
 
@@ -141,6 +151,81 @@ export const llmConfigService = {};
 export const authService = {
     login: async (data: { username: string; password: string }) => {
         const response = await api.post<{ token: string; username: string }>('/auth/login', data);
+        return response.data;
+    },
+};
+
+export const knowledgeService = {
+    // Embedding 厂商
+    getEmbeddingProviders: async (): Promise<EmbeddingProviderInfo[]> => {
+        const response = await api.get<EmbeddingProviderInfo[]>('/knowledge/embedding-providers');
+        return response.data;
+    },
+
+    // 项目 CRUD
+    getProjects: async (): Promise<ProjectListResponse> => {
+        const response = await api.get<ProjectListResponse>('/knowledge/projects');
+        return response.data;
+    },
+
+    getProject: async (id: number): Promise<Project> => {
+        const response = await api.get<Project>(`/knowledge/projects/${id}`);
+        return response.data;
+    },
+
+    createProject: async (data: {
+        name: string;
+        description?: string;
+        embedding_provider: string;
+        embedding_model: string;
+    }): Promise<Project> => {
+        const response = await api.post<Project>('/knowledge/projects', data);
+        return response.data;
+    },
+
+    updateProject: async (id: number, data: {
+        name?: string;
+        description?: string;
+        embedding_provider?: string;
+        embedding_model?: string;
+    }): Promise<Project> => {
+        const response = await api.put<Project>(`/knowledge/projects/${id}`, data);
+        return response.data;
+    },
+
+    deleteProject: async (id: number) => {
+        const response = await api.delete(`/knowledge/projects/${id}`);
+        return response.data;
+    },
+
+    // 文档管理
+    getDocuments: async (projectId: number): Promise<KnowledgeDocument[]> => {
+        const response = await api.get<KnowledgeDocument[]>(`/knowledge/projects/${projectId}/documents`);
+        return response.data;
+    },
+
+    uploadDocument: async (projectId: number, file: File): Promise<KnowledgeDocument> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post<KnowledgeDocument>(
+            `/knowledge/projects/${projectId}/documents`,
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 },
+        );
+        return response.data;
+    },
+
+    deleteDocument: async (docId: number) => {
+        const response = await api.delete(`/knowledge/documents/${docId}`);
+        return response.data;
+    },
+
+    // 检索
+    search: async (projectId: number, query: string, topK = 5): Promise<{ results: KnowledgeSearchResult[] }> => {
+        const response = await api.post<{ results: KnowledgeSearchResult[] }>(
+            `/knowledge/projects/${projectId}/search`,
+            { query, top_k: topK },
+        );
         return response.data;
     },
 };

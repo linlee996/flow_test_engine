@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FileText, Plus, Bot } from 'lucide-react';
+import { LayoutDashboard, FileText, Plus, Bot, Database } from 'lucide-react';
 import { Button } from './ui/Button';
 import styles from './Layout.module.css';
 
 interface LayoutProps {
     children: React.ReactNode;
-    activeTab: 'tasks' | 'templates' | 'llm';
-    onTabChange: (tab: 'tasks' | 'templates' | 'llm') => void;
+    activeTab: 'tasks' | 'templates' | 'llm' | 'knowledge';
+    onTabChange: (tab: 'tasks' | 'templates' | 'llm' | 'knowledge') => void;
     onCreateTask: () => void;
     username?: string;
     onLogout?: () => void;
@@ -98,6 +98,13 @@ export const Layout: React.FC<LayoutProps> = ({
                         >
                             <Bot size={20} />
                             模型配置
+                        </button>
+                        <button
+                            className={`${styles.navItem} ${activeTab === 'knowledge' ? styles.active : ''}`}
+                            onClick={() => onTabChange('knowledge')}
+                        >
+                            <Database size={20} />
+                            知识库
                         </button>
                     </nav>
                 </aside>
